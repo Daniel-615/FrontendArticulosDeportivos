@@ -1,0 +1,89 @@
+import axios from 'axios';
+const API_GATEWAY = import.meta.env.VITE_API_GATEWAY;
+export const registerRequest = async (user) => {
+  try {
+    const response = await axios.post(`${API_GATEWAY}usuario/register`, user, {
+      withCredentials: true
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || 'Error del servidor'
+      };
+    }
+    return { success: false, error: 'Error de red o del servidor' };
+  }
+};
+export const registerRequestEmployee = async (user) => {
+  try {
+    const response = await axios.post(`${API_GATEWAY}usuario/register-admin`, user, {
+      withCredentials: true
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || 'Error del servidor'
+      };
+    }
+    return { success: false, error: 'Error de red o del servidor' };
+  }
+};
+export const resetPassword = async ({ token, newPassword }) => {
+  try {
+    const response = await axios.post(
+      `${API_GATEWAY}usuario/reset-password?token=${encodeURIComponent(token)}`, //esto sirve para que no se corrompa el token
+      { newPassword },
+      { withCredentials: true } 
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || 'Error del servidor'
+      };
+    }
+    return { success: false, error: 'Error de red o del servidor' };
+  }
+};
+
+
+export const ForgotPassword=async(user)=>{
+  try{
+    const response=await axios.post(`${API_GATEWAY}usuario/forgot-password`,user,{
+      withCredentials:true
+    });
+    return { success: true, data: response.data };
+  }catch(err){
+    if (error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || 'Error del servidor'
+      };
+    }
+    return { success: false, error: 'Error de red o del servidor' };
+  }
+}
+export const LoginRequest = async (user) => {
+  try {
+    const response = await axios.post(`${API_GATEWAY}usuario/login`, user, {
+      withCredentials: true
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    if (error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || 'Error del servidor'
+      };
+    }
+    return { success: false, error: 'Error de red o del servidor' };
+  }
+};
+export const LoginGoogleRequest = () => {
+  window.location.href = `${API_GATEWAY}usuario/auth/google`;
+};

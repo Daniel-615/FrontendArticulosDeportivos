@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { registerRequestEmployee } from '../../../api-gateway/auth.js';
-import { useNavigate } from 'react-router-dom';
 function RegisterEmployeePage() {
     const { register, handleSubmit, reset } = useForm();
     const [serverMessage, setServerMessage] = useState(null);
     const [success, setSuccess] = useState(null);
-    const navigate=useNavigate();
     const onSubmit = async (values) => {
         const response = await registerRequestEmployee(values); 
         if (response.success) {
-            navigate('/')
             setServerMessage(null);
             reset();
         } else {

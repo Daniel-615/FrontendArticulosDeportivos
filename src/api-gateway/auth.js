@@ -87,3 +87,14 @@ export const LoginRequest = async (user) => {
 export const LoginGoogleRequest = () => {
   window.location.href = `${API_GATEWAY}usuario/auth/google`;
 };
+
+export const refreshTokenRequest= async ()=>{
+  try{
+    const response= await axios.get('usuario/refreshToken',{
+      withCredentials: true,
+    });
+    return {sucess: true, data: response.data};
+  }catch(err){
+    return {sucess: false, error: err.response?.data?.message|| "Error de token"}
+  }
+}

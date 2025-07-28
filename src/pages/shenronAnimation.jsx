@@ -4,14 +4,13 @@ import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 // Componente para crear las esferas del dragón
-const DragonBall = ({ stars, index, ballsScattering }) => {
+const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionComplete }) => {
   // Posiciones de las estrellas para cada esfera
   const getStarPositions = (numStars) => {
     const positions = []
     const radius = 25
     const centerX = 40
     const centerY = 40
-
     if (numStars === 1) {
       positions.push({ x: centerX, y: centerY })
     } else if (numStars === 2) {
@@ -48,11 +47,17 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
       positions.push({ x: centerX + 12, y: centerY + 8 })
       positions.push({ x: centerX, y: centerY + 15 })
     }
-
     return positions
   }
 
   const starPositions = getStarPositions(stars)
+
+  // Calcular posición de colisión (todas van al centro)
+  const getCollisionPosition = () => {
+    return { x: 0, y: 0 }
+  }
+
+  const collisionPos = getCollisionPosition()
 
   return (
     <motion.div
@@ -71,12 +76,26 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
               y: (Math.random() - 0.5) * 1000,
               rotate: Math.random() * 720,
             }
-          : {
-              opacity: 1,
-              scale: 1,
-              y: 0,
-              rotateY: 0,
-            }
+          : ballsColliding
+            ? {
+                opacity: 1,
+                scale: [1, 1.2, 0.8],
+                x: collisionPos.x,
+                y: collisionPos.y,
+                rotate: [0, 180, 360],
+                filter: ["brightness(1)", "brightness(3)", "brightness(1)"],
+              }
+            : collisionComplete
+              ? {
+                  opacity: 0,
+                  scale: 0,
+                }
+              : {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  rotateY: 0,
+                }
       }
       transition={
         ballsScattering
@@ -85,13 +104,24 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
               delay: index * 0.1,
               ease: "easeOut",
             }
-          : {
-              delay: index * 0.4,
-              duration: 0.8,
-              type: "spring",
-              stiffness: 200,
-              damping: 15,
-            }
+          : ballsColliding
+            ? {
+                duration: 1.5,
+                delay: index * 0.05,
+                ease: "easeInOut",
+              }
+            : collisionComplete
+              ? {
+                  duration: 0.3,
+                  delay: 0,
+                }
+              : {
+                  delay: index * 0.4,
+                  duration: 0.8,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 15,
+                }
       }
       className="relative group"
     >
@@ -104,10 +134,20 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
                 opacity: 0,
                 scale: 2,
               }
-            : {
-                scale: [1, 1.2, 1],
-                opacity: [0.6, 0.8, 0.6],
-              }
+            : ballsColliding
+              ? {
+                  opacity: [0.6, 1, 0],
+                  scale: [1, 3, 5],
+                }
+              : collisionComplete
+                ? {
+                    opacity: 0,
+                    scale: 0,
+                  }
+                : {
+                    scale: [1, 1.2, 1],
+                    opacity: [0.6, 0.8, 0.6],
+                  }
         }
         transition={
           ballsScattering
@@ -115,11 +155,20 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
                 duration: 1.5,
                 delay: index * 0.1,
               }
-            : {
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-                delay: index * 0.2,
-              }
+            : ballsColliding
+              ? {
+                  duration: 1.5,
+                  delay: index * 0.05,
+                }
+              : collisionComplete
+                ? {
+                    duration: 0.3,
+                  }
+                : {
+                    duration: 2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    delay: index * 0.2,
+                  }
         }
       />
 
@@ -143,7 +192,6 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
               <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.3" />
             </filter>
           </defs>
-
           {/* Main sphere */}
           <circle
             cx="40"
@@ -154,25 +202,23 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
             strokeWidth="2"
             filter={`url(#shadow${index})`}
           />
-
           {/* Highlight */}
           <ellipse cx="32" cy="28" rx="12" ry="8" fill="#fef3c7" opacity="0.6" />
-
           {/* Stars */}
           {starPositions.map((pos, starIndex) => (
             <g key={starIndex}>
               {/* Star shape */}
               <path
-                d={`M ${pos.x} ${pos.y - 6} 
-                   L ${pos.x + 2} ${pos.y - 2} 
-                   L ${pos.x + 6} ${pos.y - 2} 
-                   L ${pos.x + 3} ${pos.y + 1} 
-                   L ${pos.x + 4} ${pos.y + 5} 
-                   L ${pos.x} ${pos.y + 3} 
-                   L ${pos.x - 4} ${pos.y + 5} 
-                   L ${pos.x - 3} ${pos.y + 1} 
-                   L ${pos.x - 6} ${pos.y - 2} 
-                   L ${pos.x - 2} ${pos.y - 2} Z`}
+                d={`M ${pos.x} ${pos.y - 6}
+                    L ${pos.x + 2} ${pos.y - 2}
+                    L ${pos.x + 6} ${pos.y - 2}
+                    L ${pos.x + 3} ${pos.y + 1}
+                    L ${pos.x + 4} ${pos.y + 5}
+                    L ${pos.x} ${pos.y + 3}
+                    L ${pos.x - 4} ${pos.y + 5}
+                    L ${pos.x - 3} ${pos.y + 1}
+                    L ${pos.x - 6} ${pos.y - 2}
+                    L ${pos.x - 2} ${pos.y - 2} Z`}
                 fill={`url(#starGradient${index})`}
                 stroke="#7f1d1d"
                 strokeWidth="0.5"
@@ -181,11 +227,9 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
               <circle cx={pos.x} cy={pos.y - 1} r="1" fill="#fca5a5" opacity="0.8" />
             </g>
           ))}
-
           {/* Additional shine effect */}
           <circle cx="40" cy="40" r="38" fill="none" stroke="url(#ballGradient0)" strokeWidth="1" opacity="0.3" />
         </svg>
-
         {/* Animated glow ring */}
         <motion.div
           className="absolute inset-0 rounded-full border-2 border-orange-300"
@@ -195,21 +239,40 @@ const DragonBall = ({ stars, index, ballsScattering }) => {
                   opacity: 0,
                   scale: 2,
                 }
-              : {
-                  opacity: [0, 0.8, 0],
-                  scale: [1, 1.1, 1],
-                }
+              : ballsColliding
+                ? {
+                    opacity: [0, 1, 0],
+                    scale: [1, 2, 3],
+                  }
+                : collisionComplete
+                  ? {
+                      opacity: 0,
+                      scale: 0,
+                    }
+                  : {
+                      opacity: [0, 0.8, 0],
+                      scale: [1, 1.1, 1],
+                    }
           }
           transition={
             ballsScattering
               ? {
                   duration: 1,
                 }
-              : {
-                  duration: 1.5,
-                  repeat: Number.POSITIVE_INFINITY,
-                  delay: index * 0.3,
-                }
+              : ballsColliding
+                ? {
+                    duration: 1.5,
+                    delay: index * 0.05,
+                  }
+                : collisionComplete
+                  ? {
+                      duration: 0.3,
+                    }
+                  : {
+                      duration: 1.5,
+                      repeat: Number.POSITIVE_INFINITY,
+                      delay: index * 0.3,
+                    }
           }
         />
       </div>
@@ -222,8 +285,10 @@ function ShenronAnimation() {
   const pedirDeseoRef = useRef(null)
   const waitTimeRef = useRef(null)
   const finalVozRef = useRef(null)
-
   const [started, setStarted] = useState(false)
+  const [ballsColliding, setBallsColliding] = useState(false)
+  const [collisionComplete, setCollisionComplete] = useState(false)
+  const [showLightBurst, setShowLightBurst] = useState(false)
   const [showShenron, setShowShenron] = useState(false)
   const [showLightning, setShowLightning] = useState(false)
   const [showParticles, setShowParticles] = useState(false)
@@ -310,10 +375,18 @@ function ShenronAnimation() {
 
   const startSummoning = () => {
     setStarted(true)
-    setTimeout(() => setShowLightning(true), 2000)
-    setTimeout(() => setShowParticles(true), 2500)
-    setTimeout(() => setShowShenron(true), 3000)
-    setTimeout(() => setShowWishForm(true), 6000)
+
+    // Secuencia de colisión de las esferas
+    setTimeout(() => setBallsColliding(true), 1000)
+    setTimeout(() => {
+      setCollisionComplete(true)
+      setShowLightBurst(true)
+    }, 2500)
+    setTimeout(() => setShowLightBurst(false), 3500)
+    setTimeout(() => setShowLightning(true), 3000)
+    setTimeout(() => setShowParticles(true), 3500)
+    setTimeout(() => setShowShenron(true), 4000)
+    setTimeout(() => setShowWishForm(true), 7000)
   }
 
   const grantWish = () => {
@@ -324,7 +397,6 @@ function ShenronAnimation() {
       waitTimeRef.current.pause()
       waitTimeRef.current.currentTime = 0
     }
-
     if (finalVozRef.current) {
       finalVozRef.current.play().catch((err) => {
         console.warn("Error reproduciendo final_voz.mp3:", err)
@@ -338,7 +410,6 @@ function ShenronAnimation() {
     setTimeout(() => {
       setShenronDisappearing(true)
     }, 7000)
-
     setTimeout(() => {
       setBallsScattering(true)
       setShowShenron(false)
@@ -353,6 +424,9 @@ function ShenronAnimation() {
   const resetAnimation = () => {
     stopAllAudios()
     setStarted(false)
+    setBallsColliding(false)
+    setCollisionComplete(false)
+    setShowLightBurst(false)
     setShowShenron(false)
     setShowLightning(false)
     setShowParticles(false)
@@ -384,6 +458,48 @@ function ShenronAnimation() {
       <audio ref={pedirDeseoRef} src="/pedir_deseo.mp3" preload="auto" />
       <audio ref={waitTimeRef} src="/wait_time.mp3" preload="auto" />
       <audio ref={finalVozRef} src="/final_voz.mp3" preload="auto" />
+
+      {/* Light Burst Effect */}
+      <AnimatePresence>
+        {showLightBurst && (
+          <motion.div
+            className="fixed inset-0 z-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Central explosion */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white rounded-full"
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: 50, opacity: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+
+            {/* Radial light rays */}
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute top-1/2 left-1/2 origin-left w-screen h-2 bg-gradient-to-r from-yellow-300 via-orange-400 to-transparent"
+                style={{
+                  transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
+                }}
+                initial={{ scaleX: 0, opacity: 1 }}
+                animate={{ scaleX: 1, opacity: 0 }}
+                transition={{ duration: 0.8, delay: i * 0.05, ease: "easeOut" }}
+              />
+            ))}
+
+            {/* Screen flash */}
+            <motion.div
+              className="absolute inset-0 bg-yellow-200"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.8, 0] }}
+              transition={{ duration: 0.5 }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Lightning effects */}
       <AnimatePresence>
@@ -442,23 +558,132 @@ function ShenronAnimation() {
           ))}
       </AnimatePresence>
 
-      {/* Summon button */}
+      {/* Enhanced Summon button */}
       {!started && (
-        <motion.button
-          onClick={startSummoning}
-          className="mb-10 px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold rounded-xl shadow-2xl shadow-yellow-500/30 transition-all transform hover:scale-105 border-2 border-yellow-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <motion.div
+          className="mb-10 relative"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
         >
-          <span className="text-xl">🔮 Invocar a Shenron</span>
-        </motion.button>
+          {/* Button glow background */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-2xl blur-xl opacity-60"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.6, 0.8, 0.6],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Number.POSITIVE_INFINITY,
+            }}
+          />
+
+          {/* Floating orbs around button */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50"
+              style={{
+                left: `${20 + i * 12}%`,
+                top: `${Math.sin(i) * 20 + 50}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.5, 1, 0.5],
+                scale: [0.8, 1.2, 0.8],
+              }}
+              transition={{
+                duration: 2,
+                delay: i * 0.3,
+                repeat: Number.POSITIVE_INFINITY,
+              }}
+            />
+          ))}
+
+          <motion.button
+            onClick={startSummoning}
+            className="relative px-12 py-6 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:via-orange-400 hover:to-red-400 text-black font-bold rounded-2xl shadow-2xl shadow-orange-500/40 transition-all transform border-4 border-yellow-300 overflow-hidden"
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 50px rgba(251, 191, 36, 0.8)",
+            }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {/* Animated background shine */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{
+                x: ["-100%", "100%"],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Number.POSITIVE_INFINITY,
+                repeatDelay: 1,
+              }}
+            />
+
+            {/* Button content */}
+            <div className="relative flex items-center gap-3">
+              <motion.span
+                className="text-3xl"
+                animate={{
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "linear",
+                }}
+              >
+                🔮
+              </motion.span>
+              <span className="text-2xl font-extrabold bg-gradient-to-r from-gray-900 to-black bg-clip-text text-transparent drop-shadow-lg">
+                Invocar a Shenron
+              </span>
+              <motion.div
+                className="flex gap-1"
+                animate={{
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Number.POSITIVE_INFINITY,
+                }}
+              >
+                <span className="text-xl">⚡</span>
+                <span className="text-xl">✨</span>
+              </motion.div>
+            </div>
+
+            {/* Pulsing border effect */}
+            <motion.div
+              className="absolute inset-0 border-4 border-yellow-200 rounded-2xl"
+              animate={{
+                opacity: [0, 1, 0],
+                scale: [1, 1.02, 1],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Number.POSITIVE_INFINITY,
+              }}
+            />
+          </motion.button>
+        </motion.div>
       )}
 
-      {/* Dragon Balls with custom SVG design */}
+      {/* Dragon Balls with collision animation */}
       {started && (
         <div className="flex flex-wrap justify-center gap-6 mb-16 relative z-10">
           {[1, 2, 3, 4, 5, 6, 7].map((stars, i) => (
-            <DragonBall key={i} stars={stars} index={i} ballsScattering={ballsScattering} />
+            <DragonBall
+              key={i}
+              stars={stars}
+              index={i}
+              ballsScattering={ballsScattering}
+              ballsColliding={ballsColliding}
+              collisionComplete={collisionComplete}
+            />
           ))}
         </div>
       )}
@@ -596,7 +821,6 @@ function ShenronAnimation() {
                 alt="Shenron"
                 className="w-full drop-shadow-2xl rounded-2xl border-4 border-green-400/30"
               />
-
               {/* Glowing eyes effect */}
               <motion.div
                 className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-red-500 rounded-full blur-lg opacity-80"
@@ -687,7 +911,6 @@ function ShenronAnimation() {
               >
                 Elige tu deseo
               </motion.h2>
-
               <div className="space-y-4 mb-8">
                 {wishOptions.map((wish, index) => (
                   <motion.button
@@ -708,7 +931,6 @@ function ShenronAnimation() {
                   </motion.button>
                 ))}
               </div>
-
               <div className="flex gap-4">
                 <motion.button
                   onClick={grantWish}
@@ -719,7 +941,6 @@ function ShenronAnimation() {
                 >
                   ✨ Conceder Deseo
                 </motion.button>
-
                 <motion.button
                   onClick={resetAnimation}
                   className="py-3 px-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg transition-all"
@@ -757,7 +978,6 @@ function ShenronAnimation() {
               >
                 ✨
               </motion.div>
-
               <motion.h2
                 className="text-4xl font-bold text-yellow-400 mb-6"
                 animate={{
@@ -774,7 +994,6 @@ function ShenronAnimation() {
               >
                 ¡Deseo Concedido!
               </motion.h2>
-
               <motion.p
                 className="text-xl text-yellow-200 leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
@@ -783,7 +1002,6 @@ function ShenronAnimation() {
               >
                 {selectedWishData.response}
               </motion.p>
-
               <motion.div
                 className="mt-8 text-sm text-yellow-300"
                 initial={{ opacity: 0 }}
@@ -817,7 +1035,6 @@ function ShenronAnimation() {
                 repeat: Number.POSITIVE_INFINITY,
               }}
             />
-
             <motion.p
               className="relative text-green-400 text-3xl md:text-5xl font-bold bg-gradient-to-r from-green-300 to-green-500 bg-clip-text text-transparent drop-shadow-2xl"
               animate={{
@@ -834,7 +1051,6 @@ function ShenronAnimation() {
             >
               ¡Dime tu deseo!
             </motion.p>
-
             {/* Sparkle effects around text */}
             {[...Array(6)].map((_, i) => (
               <motion.div

@@ -6,6 +6,7 @@ function RegisterEmployeePage() {
     const [serverMessage, setServerMessage] = useState(null);
     const [success, setSuccess] = useState(null);
     const onSubmit = async (values) => {
+        values.rolId = 1;
         const response = await registerRequestEmployee(values); 
         if (response.success) {
             setServerMessage(null);

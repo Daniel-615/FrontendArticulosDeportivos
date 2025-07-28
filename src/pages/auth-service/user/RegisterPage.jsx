@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { LoginGoogleRequest } from '../../../api-gateway/auth.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../../../context/AuthContent.jsx';
 
@@ -20,7 +20,9 @@ function RegisterPage() {
 
     if (response.success && response.data) {
       const user = {
-        username: response.data.fullName || '',
+        id: response.data.id ||'',
+        nombre: response.data.nombre || '',
+        apellido: response.data.apellido || '',
         rol: response.data.rolAsignado === 1 ? 'empleado' : 'cliente',
       };
       localStorage.setItem('user', JSON.stringify(user));
@@ -31,7 +33,7 @@ function RegisterPage() {
         navigate('/');
       }, 1000);
     } else {
-      setServerMessage(response.message ||response.error|| "Ocurrió un error.");
+      setServerMessage(response.message || response.error || "Ocurrió un error.");
     }
   };
 
@@ -42,13 +44,13 @@ function RegisterPage() {
   return (
     <div className="bg-zinc-800 max-w-md p-10 rounded-md">
       {serverMessage && (
-        <div className="bg-red-500 p-2 text-white mb-4 rounded">
+        <div className="bg-red-500 p-2 text-white mb-4 rounded text-center">
           {serverMessage}
         </div>
       )}
 
       {success && (
-        <div className="bg-green-500 p-2 text-white mb-4 rounded">
+        <div className="bg-green-500 p-2 text-white mb-4 rounded text-center">
           {success}
         </div>
       )}
@@ -60,7 +62,7 @@ function RegisterPage() {
           className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
           placeholder="Nombre"
         />
-        {errors.nombre && <p className='text-red-500'>Nombre es requerido</p>}
+        {errors.nombre && <p className="text-red-500 text-sm mb-2">Nombre es requerido</p>}
 
         <input
           type="text"
@@ -68,7 +70,7 @@ function RegisterPage() {
           className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
           placeholder="Apellido"
         />
-        {errors.apellido && <p className='text-red-500'>Apellido es requerido</p>}
+        {errors.apellido && <p className="text-red-500 text-sm mb-2">Apellido es requerido</p>}
 
         <input
           type="email"
@@ -76,15 +78,15 @@ function RegisterPage() {
           className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
           placeholder="Correo electrónico"
         />
-        {errors.email && <p className='text-red-500'>Correo es requerido</p>}
+        {errors.email && <p className="text-red-500 text-sm mb-2">Correo es requerido</p>}
 
         <input
           type="password"
           {...register('password', { required: true })}
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-4"
+          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
           placeholder="Contraseña"
         />
-        {errors.password && <p className='text-red-500'>Contraseña es requerida</p>}
+        {errors.password && <p className="text-red-500 text-sm mb-4">Contraseña es requerida</p>}
 
         <button
           type="submit"
@@ -99,8 +101,15 @@ function RegisterPage() {
           className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mt-4 flex items-center justify-center gap-2"
         >
           <FcGoogle className="text-2xl" />
-          Iniciar sesión con Google
+          Registrarse con Google
         </button>
+
+        <p className="text-gray-300 text-sm mt-6 text-center">
+          ¿Ya tienes una cuenta?{' '}
+          <Link to="/login" className="text-blue-400 hover:underline">
+            Inicia sesión
+          </Link>
+        </p>
       </form>
     </div>
   );

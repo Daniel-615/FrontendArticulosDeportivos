@@ -1,5 +1,5 @@
-import { createContext, useState, useContext } from "react";
-import { LoginRequest, registerRequest } from "../api-gateway/auth";
+import { createContext, useState, useContext, useEffect } from "react";
+import { LoginRequest, refreshTokenRequest, registerRequest,Logout } from "../api-gateway/auth";
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -14,9 +14,39 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+  const [loading, setLoading] = useState(true);
+  useEffect(()=>{
+    //esto sirve para refrescar la sesión al refrescar el navegador
+    const checkSession= async()=>{
+      const res= await refreshTokenRequest();
+      if(res.success){
+        setUser({
+          id: res.data.userId,
+          email: res.data.email,
+          rol: res.data.rol
+        });
+        setIsAuthenticated(true);
+      }else{
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+       setLoading(false); 
+    };
+    checkSession();
+  },[]);
+
+  const logout = async () => {
+    const res = await Logout();
+    if (res.success) {
+      setUser(null);
+      setIsAuthenticated(false);
+    } else {
+      console.error("Error al cerrar sesión:", res.error);
+    }
+  };
+
   const signup = async (user) => {
-    const res = await registerRequest(user); // Siempre devuelve { success, data/error }
+    const res = await registerRequest(user);
 
     if (res.success) {
       setUser(res.data);
@@ -48,8 +78,10 @@ export const AuthProvider = ({ children }) => {
       value={{
         signup,
         signin,
+        logout,
         user,
         isAuthenticated,
+        loading,
       }}
     >
       {children}

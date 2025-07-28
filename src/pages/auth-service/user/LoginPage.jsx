@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { LoginGoogleRequest } from '../../../api-gateway/auth.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../../../context/AuthContent.jsx';
 
@@ -23,7 +23,6 @@ function LoginPage() {
         navigate('/');
       }, 1000);
     } else {
-      // ✅ Nos aseguramos que el mensaje sea un string
       const message =
         typeof response.message === 'string'
           ? response.message
@@ -54,28 +53,47 @@ function LoginPage() {
           className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
           placeholder="Contraseña"
         />
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
         >
           Iniciar Sesión
         </button>
+
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mt-4"
+          className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mt-4 flex items-center justify-center gap-2"
         >
           <FcGoogle className="text-2xl" />
           Iniciar sesión con Google
         </button>
 
         {typeof serverMessage === 'string' && (
-          <p className="text-red-400 text-sm mt-4">{serverMessage}</p>
+          <p className="text-red-400 text-sm mt-4 text-center">{serverMessage}</p>
         )}
+
         {success && (
-          <p className="text-green-400 text-sm mt-4">{success}</p>
+          <p className="text-green-400 text-sm mt-4 text-center">{success}</p>
         )}
       </form>
+
+      {/* Enlaces adicionales */}
+      <div className="text-center mt-6 text-sm text-gray-300">
+        <p>
+          ¿No tienes una cuenta?{' '}
+          <Link to="/register" className="text-blue-400 hover:underline">
+            Regístrate aquí
+          </Link>
+        </p>
+        <p className="mt-2">
+          ¿Olvidaste tu contraseña?{' '}
+          <Link to="/forgot-password" className="text-blue-400 hover:underline">
+            Recuperarla
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

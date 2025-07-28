@@ -20,7 +20,7 @@ function HomePage() {
 
         {user ? (
           <>
-            <p className="text-white text-xl font-semibold mb-2">Bienvenido, <span className="text-yellow-300">{user.username}</span></p>
+            <p className="text-white text-xl font-semibold mb-2">Bienvenido, <span className="text-yellow-300">{user.nombre + user.apellido}</span></p>
             <p className="text-md text-zinc-300">
               Rol asignado: <span className="font-bold text-white">{user.rol}</span>
             </p>

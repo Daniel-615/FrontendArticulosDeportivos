@@ -8,7 +8,6 @@ export const registerRequest = async (user) => {
     return { success: true, data: response.data };
   } catch (error) {
     if (error.response) {
-      console.log(error.response.data.error)
       return {
         success: false,
         error: error.response.data.error|| 'Error del servidor'
@@ -92,7 +91,7 @@ export const LoginGoogleRequest = () => {
 
 export const refreshTokenRequest= async ()=>{
   try{
-    const response= await axios.get('usuario/refreshToken',{
+    const response= await axios.get(`${API_GATEWAY}usuario/`,{
       withCredentials: true,
     });
     return {success: true, data: response.data};
@@ -100,3 +99,18 @@ export const refreshTokenRequest= async ()=>{
     return {success: false, error: err.response?.data?.message|| "Error de token"}
   }
 }
+
+export const Logout = async () => {
+  try {
+    const response = await axios.post(`${API_GATEWAY}usuario/logout`, {}, {
+      withCredentials: true,
+    });
+    console.log(response.data)
+    return { success: true, data: response.data };
+  } catch (err) {
+    return {
+      success: false,
+      error: err.response?.data?.message || "Error al cerrar sesión.",
+    };
+  }
+};

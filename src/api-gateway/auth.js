@@ -8,9 +8,10 @@ export const registerRequest = async (user) => {
     return { success: true, data: response.data };
   } catch (error) {
     if (error.response) {
+      console.log(error.response.data.error)
       return {
         success: false,
-        error: error.response.data.message || 'Error del servidor'
+        error: error.response.data.error|| 'Error del servidor'
       };
     }
     return { success: false, error: 'Error de red o del servidor' };
@@ -58,7 +59,7 @@ export const ForgotPassword=async(user)=>{
       withCredentials:true
     });
     return { success: true, data: response.data };
-  }catch(err){
+  }catch(error){
     if (error.response) {
       return {
         success: false,
@@ -68,22 +69,23 @@ export const ForgotPassword=async(user)=>{
     return { success: false, error: 'Error de red o del servidor' };
   }
 }
-export const LoginRequest = async (user) => {
+export const LoginRequest = async (credentials) => {
   try {
-    const response = await axios.post(`${API_GATEWAY}usuario/login`, user, {
-      withCredentials: true
+    const response = await axios.post(`${API_GATEWAY}usuario/login`, credentials, {
+      withCredentials: true,
     });
-    return { success: true, data: response.data };
+    return {
+      success: true,
+      data: response.data,
+    };
   } catch (error) {
-    if (error.response) {
-      return {
-        success: false,
-        error: error.response.data.message || 'Error del servidor'
-      };
-    }
-    return { success: false, error: 'Error de red o del servidor' };
+    return {
+      success: false,
+      error: error.response?.data?.error || error.response?.data?.message || 'Error al iniciar sesión.',
+    };
   }
 };
+
 export const LoginGoogleRequest = () => {
   window.location.href = `${API_GATEWAY}usuario/auth/google`;
 };
@@ -93,8 +95,8 @@ export const refreshTokenRequest= async ()=>{
     const response= await axios.get('usuario/refreshToken',{
       withCredentials: true,
     });
-    return {sucess: true, data: response.data};
+    return {success: true, data: response.data};
   }catch(err){
-    return {sucess: false, error: err.response?.data?.message|| "Error de token"}
+    return {success: false, error: err.response?.data?.message|| "Error de token"}
   }
 }

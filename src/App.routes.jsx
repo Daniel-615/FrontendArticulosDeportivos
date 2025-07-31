@@ -6,6 +6,7 @@ import ForgotPasswordPage from "./pages/auth-service/user/forgotPasswordPage";
 import ResetPasswordPage from "./pages/auth-service/user/resetPasswordPage";
 import UpdateUserPage from "./pages/auth-service/user/crud/UpdateUserPage";
 import ShenronAnimation from "./pages/shenronAnimation";
+import AdminPanel from "./pages/auth-service/user/crud/AdminPanel.jsx";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContent";
 import { Routes, Route } from "react-router-dom";
@@ -35,8 +36,17 @@ function AppRoutes(){
                     )}
                 </ProtectedRoute>
             } />
+            <Route path="/admin-panel" element={
+                <ProtectedRoute>
+                    {user?.rol?.includes('admin') ? (
+                    <AdminPanel />
+                    ) : (
+                    <UnauthorizedPage />
+                    )}
+                </ProtectedRoute>
+            } />
             <Route
-                path="/user/update/"
+                path="/user/profile/"
                 element={
                     <ProtectedRoute>
                     {user?.rol?.some(r => r === 'admin' || r === 'cliente') ? (

@@ -105,7 +105,6 @@ export const Logout = async () => {
     const response = await axios.post(`${API_GATEWAY}usuario/logout`, {}, {
       withCredentials: true,
     });
-    console.log(response.data)
     return { success: true, data: response.data };
   } catch (err) {
     return {

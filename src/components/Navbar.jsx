@@ -35,7 +35,11 @@ function Navbar() {
             <Link to="/register-employee" className="hover:text-blue-400">Registrar Empleados</Link>
           </li>
         )}
-
+        {isAuthenticated && (user?.rol?.includes('cliente') || user?.rol?.includes('admin')) &&(
+          <li>
+            <Link to="/user/profile" className="hover:text-blue-400">Perfil</Link>
+          </li>
+        )}
         {isAuthenticated && (
           <li>
             <button onClick={handleLogout} className="hover:text-red-400">Cerrar Sesión</button>

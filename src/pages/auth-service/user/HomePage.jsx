@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useAuth } from '../../../context/AuthContent.jsx';
 import { FaRunning } from 'react-icons/fa';
 
 function HomePage() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="text-center text-white mt-10">Cargando usuario...</div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-green-700 to-black max-w-xl p-10 rounded-2xl text-white mx-auto mt-16 shadow-2xl border border-green-500">
@@ -20,13 +18,15 @@ function HomePage() {
 
         {user ? (
           <>
-            <p className="text-white text-xl font-semibold mb-2">Bienvenido, <span className="text-yellow-300">{user.nombre + user.apellido}</span></p>
+            <p className="text-white text-xl font-semibold mb-2">
+              Bienvenido, <span className="text-yellow-300">{user.nombre} {user.apellido}</span>
+            </p>
             <p className="text-md text-zinc-300">
               Rol asignado: <span className="font-bold text-white">{user.rol}</span>
             </p>
           </>
         ) : (
-          <p className="text-lg">Cargando usuario...</p>
+          <p className="text-lg">No se ha iniciado sesión.</p>
         )}
       </div>
     </div>

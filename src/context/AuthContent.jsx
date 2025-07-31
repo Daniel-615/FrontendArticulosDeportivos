@@ -22,9 +22,18 @@ export const AuthProvider = ({ children }) => {
       if(res.success){
         setUser({
           id: res.data.userId,
+          nombre: res.data.nombre,
+          apellido: res.data.apellido,
           email: res.data.email,
           rol: res.data.rol
-        });
+        });;
+        const userData={
+          id: res.data.userId,
+          nombre: res.data.nombre,
+          apellido: res.data.apellido,
+          email: res.data.email,
+        }
+        localStorage.setItem("user",JSON.stringify(userData))
         setIsAuthenticated(true);
       }else{
         setUser(null);
@@ -40,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     if (res.success) {
       setUser(null);
       setIsAuthenticated(false);
+      localStorage.removeItem("user");
     } else {
       console.error("Error al cerrar sesión:", res.error);
     }

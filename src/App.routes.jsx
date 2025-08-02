@@ -11,6 +11,9 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContent";
 import { Routes, Route } from "react-router-dom";
 import UnauthorizedPage from "./pages/UnauthorizedPage.jsx";
+import AdminPermiso from "./pages/auth-service/permiso/AdminPermiso.jsx";
+import AdminRol from "./pages/auth-service/rol/AdminRol.jsx";
+import AdminRolPermiso from "./pages/auth-service/rol-permiso/AdminRolPermiso.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -36,6 +39,43 @@ function AppRoutes(){
                     )}
                 </ProtectedRoute>
             } />
+
+            <Route
+                path="/admin-permiso"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol.includes('admin') ? (
+                        <AdminPermiso />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin-rol"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol.includes('admin') ? (
+                        <AdminRol />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin-rol-permiso"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol.includes('admin') ? (
+                        <AdminRolPermiso />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
             <Route path="/admin-panel" element={
                 <ProtectedRoute>
                     {user?.rol?.includes('admin') ? (

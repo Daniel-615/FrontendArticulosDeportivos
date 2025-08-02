@@ -29,7 +29,11 @@ function Navbar() {
             <li><Link to="/register" className="hover:text-blue-400">Registrarse</Link></li>
           </>
         )}
-
+        {isAuthenticated &&user?.rol?.includes('admin') &&(
+          <li>
+            <Link to="/admin-panel" className='hover:text-blue-400'>Panel Administrador</Link>
+          </li>
+        )}
         {isAuthenticated && user?.rol?.includes('admin') && (
           <li>
             <Link to="/register-employee" className="hover:text-blue-400">Registrar Empleados</Link>

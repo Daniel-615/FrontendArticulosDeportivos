@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { findAllActivos, findAll, findOne, Delete } from '../../../../api-gateway/user.crud.js';
 
 function AdminPanel() {
@@ -6,6 +7,8 @@ function AdminPanel() {
   const [mostrarActivos, setMostrarActivos] = useState(true);
   const [mensaje, setMensaje] = useState(null);
   const [detalleUsuario, setDetalleUsuario] = useState(null);
+  const [mostrarDropdown, setMostrarDropdown] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarUsuarios();
@@ -50,7 +53,7 @@ function AdminPanel() {
     <div className="max-w-5xl mx-auto p-6 bg-zinc-800 text-white rounded-lg mt-10">
       <h2 className="text-2xl font-bold mb-4 text-center">Panel de Administrador</h2>
 
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between items-center mb-4">
         <label className="text-sm">
           <input
             type="checkbox"
@@ -60,6 +63,58 @@ function AdminPanel() {
           />
           Mostrar solo usuarios activos
         </label>
+
+        <div className="relative">
+          <button
+            onClick={() => setMostrarDropdown(!mostrarDropdown)}
+            className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded text-sm"
+          >
+            Gestiones adicionales
+          </button>
+          {mostrarDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-zinc-700 rounded-md shadow-lg z-10">
+              <ul className="py-1 text-sm text-white">
+                <li
+                  className="px-4 py-2 hover:bg-zinc-600 cursor-pointer"
+                  onClick={() => {
+                    setMostrarDropdown(false);
+                    navigate("/admin-rol-permiso");
+                  }}
+                >
+                  RolPermiso
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-zinc-600 cursor-pointer"
+                  onClick={() => {
+                    setMostrarDropdown(false);
+                     navigate("/admin-permiso");
+                  }}
+                >
+                  Permiso
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-zinc-600 cursor-pointer"
+                  onClick={() => {
+                    setMostrarDropdown(false);
+                    navigate("/admin-rol");
+                  }}
+                >
+                  Rol
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-zinc-600 cursor-pointer"
+                  onClick={() => {
+                    setMostrarDropdown(false);
+                    // navigate("/admin-usuario-rol");
+                    alert("Navegar a usuario.rol");
+                  }}
+                >
+                  usuario.rol
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
 
       {mensaje && <p className="text-red-400 text-center mb-4">{mensaje}</p>}

@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { findAllActivos, findAll, findOne, Delete } from '../../../../api-gateway/user.crud.js';
+import {
+  findAllActivos,
+  findAll,
+  findOne,
+  Delete,
+  deactivateAccount
+} from '../../../../api-gateway/user.crud.js';
 
 function AdminPanel() {
   const [usuarios, setUsuarios] = useState([]);
@@ -45,6 +51,19 @@ function AdminPanel() {
     }
   };
 
+  const handleDesactivar = async (id) => {
+    const confirmar = window.confirm('¿Deseas desactivar esta cuenta? El usuario no podrá iniciar sesión.');
+    if (!confirmar) return;
+
+    const response = await deactivateAccount(id);
+    if (response.success) {
+      alert('Cuenta desactivada correctamente.');
+      cargarUsuarios();
+    } else {
+      setMensaje(response.error);
+    }
+  };
+
   const ocultarDetalles = () => {
     setDetalleUsuario(null);
   };
@@ -81,13 +100,13 @@ function AdminPanel() {
                     navigate("/admin-rol-permiso");
                   }}
                 >
-                  RolPermiso
+                  Rol Permiso
                 </li>
                 <li
                   className="px-4 py-2 hover:bg-zinc-600 cursor-pointer"
                   onClick={() => {
                     setMostrarDropdown(false);
-                     navigate("/admin-permiso");
+                    navigate("/admin-permiso");
                   }}
                 >
                   Permiso
@@ -100,16 +119,6 @@ function AdminPanel() {
                   }}
                 >
                   Rol
-                </li>
-                <li
-                  className="px-4 py-2 hover:bg-zinc-600 cursor-pointer"
-                  onClick={() => {
-                    setMostrarDropdown(false);
-                    // navigate("/admin-usuario-rol");
-                    alert("Navegar a usuario.rol");
-                  }}
-                >
-                  usuario.rol
                 </li>
               </ul>
             </div>
@@ -138,16 +147,26 @@ function AdminPanel() {
               <td>{u.apellido}</td>
               <td>{u.email}</td>
               <td>{u.rol}</td>
-              <td className="flex gap-2 justify-center py-2">
+              <td className="flex flex-col gap-1 justify-center items-center py-2">
                 <button
                   onClick={() => handleVer(u.id)}
-                  className="bg-blue-600 px-2 py-1 rounded hover:bg-blue-700"
+                  className="bg-blue-600 px-2 py-1 rounded hover:bg-blue-700 w-28"
                 >
                   Ver
                 </button>
+
+                {u.rol === 'empleado' && (
+                  <button
+                    onClick={() => handleDesactivar(u.id)}
+                    className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700 w-28"
+                  >
+                    Desactivar
+                  </button>
+                )}
+
                 <button
                   onClick={() => handleEliminar(u.id)}
-                  className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                  className="bg-red-600 px-2 py-1 rounded hover:bg-red-700 w-28"
                 >
                   Eliminar
                 </button>

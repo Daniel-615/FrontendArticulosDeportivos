@@ -817,7 +817,7 @@ function ShenronAnimation() {
               }
             >
               <img
-                src="/shenron.jpeg"
+                src="/shenron.webp"
                 alt="Shenron"
                 className="w-full drop-shadow-2xl rounded-2xl border-4 border-green-400/30"
               />

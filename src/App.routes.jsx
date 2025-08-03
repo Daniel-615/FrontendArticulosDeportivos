@@ -14,6 +14,7 @@ import UnauthorizedPage from "./pages/UnauthorizedPage.jsx";
 import AdminPermiso from "./pages/auth-service/permiso/AdminPermiso.jsx";
 import AdminRol from "./pages/auth-service/rol/AdminRol.jsx";
 import AdminRolPermiso from "./pages/auth-service/rol-permiso/AdminRolPermiso.jsx";
+import PageNotFound from "./pages/pageNotFound.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -23,7 +24,7 @@ function AppRoutes(){
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-
+            <Route path="*" element={<PageNotFound />} />
             {/* Protegidas */}
             <Route path="/" element={
                 <ProtectedRoute>

@@ -15,6 +15,10 @@ import AdminPermiso from "./pages/auth-service/permiso/AdminPermiso.jsx";
 import AdminRol from "./pages/auth-service/rol/AdminRol.jsx";
 import AdminRolPermiso from "./pages/auth-service/rol-permiso/AdminRolPermiso.jsx";
 import PageNotFound from "./pages/pageNotFound.jsx";
+import ProductosCardView from "./pages/product-service/ProductoCardView.jsx";
+import CrearProductoForm from "./pages/product-service/CrearProductoForm.jsx";
+import ProductosCrudForm from "./pages/product-service/ProductoForm.jsx";
+import InicioEmpleado from "./pages/InicioEmpledao.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -86,6 +90,15 @@ function AppRoutes(){
                     )}
                 </ProtectedRoute>
             } />
+             <Route path="/empleado-panel" element={
+                <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                    <InicioEmpleado />
+                    ) : (
+                    <UnauthorizedPage />
+                    )}
+                </ProtectedRoute>
+            } />
             <Route
                 path="/user/profile/"
                 element={
@@ -98,8 +111,42 @@ function AppRoutes(){
                     </ProtectedRoute>
                 }
             />
-
-          
+            <Route
+                path="/producto/"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r === 'cliente' || r==='empleado') ? (
+                        <ProductosCardView />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/crear/producto"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <CrearProductoForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/actualizar/producto"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <ProductosCrudForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
             <Route path="/user/deactivateAccount/:id" element={
                 <ProtectedRoute>
                     <h1>desactivar</h1>

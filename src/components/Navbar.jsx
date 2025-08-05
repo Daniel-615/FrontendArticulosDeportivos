@@ -44,6 +44,16 @@ function Navbar() {
             <Link to="/user/profile" className="hover:text-blue-400">Perfil</Link>
           </li>
         )}
+        {isAuthenticated && (user?.rol?.includes('cliente') || user?.rol?.includes('admin') || user?.rol?.includes('empleado')) &&(
+          <li>
+            <Link to="/producto" className="hover:text-blue-400">Ver Productos</Link>
+          </li>
+        )}
+        {isAuthenticated && (user?.rol?.includes('admin') || user?.rol?.includes('empleado')) &&(
+          <li>
+            <Link to="/empleado-panel" className="hover:text-blue-400">Empleados</Link>
+          </li>
+        )}
         {isAuthenticated && (
           <li>
             <button onClick={handleLogout} className="hover:text-red-400">Cerrar Sesión</button>

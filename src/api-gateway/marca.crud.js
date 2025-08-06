@@ -1,12 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_GATEWAY = import.meta.env.VITE_API_GATEWAY;
 
-export const createProducto = async (producto) => {
+export const createMarca = async (marca) => {
   try {
     const response = await axios.post(
-      `${API_GATEWAY}product`,
-      producto,
+      `${API_GATEWAY}marca`,
+      marca,
       { withCredentials: true }
     );
     return { success: true, data: response.data };
@@ -15,10 +15,10 @@ export const createProducto = async (producto) => {
   }
 };
 
-export const getProductos = async () => {
+export const getMarcas = async () => {
   try {
     const response = await axios.get(
-      `${API_GATEWAY}product`,
+      `${API_GATEWAY}marca`,
       { withCredentials: true }
     );
     return { success: true, data: response.data };
@@ -27,10 +27,10 @@ export const getProductos = async () => {
   }
 };
 
-export const getProductoId = async (id) => {
+export const getMarcaById = async (id) => {
   try {
     const response = await axios.get(
-      `${API_GATEWAY}product/${id}`,
+      `${API_GATEWAY}marca/${id}`,
       { withCredentials: true }
     );
     return { success: true, data: response.data };
@@ -39,11 +39,11 @@ export const getProductoId = async (id) => {
   }
 };
 
-export const updateProducto = async (id, producto) => {
+export const updateMarca = async (id, marca) => {
   try {
     const response = await axios.put(
-      `${API_GATEWAY}product/${id}`,
-      producto,
+      `${API_GATEWAY}marca/${id}`,
+      marca,
       { withCredentials: true }
     );
     return { success: true, data: response.data };
@@ -52,10 +52,10 @@ export const updateProducto = async (id, producto) => {
   }
 };
 
-export const deleteProducto = async (id) => {
+export const deleteMarca = async (id) => {
   try {
     const response = await axios.delete(
-      `${API_GATEWAY}product/${id}`,
+      `${API_GATEWAY}marca/${id}`,
       { withCredentials: true }
     );
     return { success: true, data: response.data };
@@ -68,7 +68,7 @@ function handleError(error) {
   if (error.response) {
     return {
       success: false,
-      error: error.response.data?.error || "Error del servidor",
+      error: error.response.data?.message || "Error del servidor",
     };
   }
   return {

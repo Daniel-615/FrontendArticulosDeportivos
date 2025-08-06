@@ -19,6 +19,12 @@ import ProductosCardView from "./pages/product-service/ProductoCardView.jsx";
 import CrearProductoForm from "./pages/product-service/CrearProductoForm.jsx";
 import ProductosCrudForm from "./pages/product-service/ProductoForm.jsx";
 import InicioEmpleado from "./pages/InicioEmpledao.jsx";
+import CategoriasCrudForm from "./pages/product-service/CategoriasForm.jsx";
+import MarcasCrudForm from "./pages/product-service/MarcasForm.jsx";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import WishlistPage from "./pages/WishlistPage.jsx";
+import CartPage from "./pages/CartPage.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -129,6 +135,55 @@ function AppRoutes(){
                     <ProtectedRoute>
                     {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
                         <CrearProductoForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/carrito"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r === 'cliente' ) ? (
+                        <CartPage />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+                />
+
+                <Route
+                path="/wishlist"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r === 'cliente' ) ? (
+                        <WishlistPage />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+                />
+            <Route
+                path="/crear/categoria"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <CategoriasCrudForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/crear/marca"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <MarcasCrudForm />
                     ) : (
                         <UnauthorizedPage />
                     )}

@@ -8,11 +8,12 @@ export const addToCart = async (data) => {
     const response = await axios.post(`${API_GATEWAY}cart/`, data, {
       withCredentials: true,
     });
-    return { success: true, data: response.data };
+    return { success: true, data: response.data.data };
+    
   } catch (error) {
     return {
       success: false,
-      error: error.response?.data?.message || 'Error al agregar al carrito',
+      error: error.response?.data || 'Error al agregar al carrito',
     };
   }
 };
@@ -23,7 +24,8 @@ export const getCartByUser = async (userId) => {
     const response = await axios.get(`${API_GATEWAY}cart/${userId}`, {
       withCredentials: true,
     });
-    return { success: true, data: response.data };
+    return { success: true, data: response.data.data };
+
   } catch (error) {
     return {
       success: false,
@@ -70,11 +72,13 @@ export const clearCart = async (userId) => {
     const response = await axios.delete(`${API_GATEWAY}cart/clear/${userId}`, {
       withCredentials: true,
     });
+    console.log(response)
     return { success: true, data: response.data };
   } catch (error) {
+    console.log(error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Error al vaciar el carrito',
+      error: error.response?.data?.error || 'Error al vaciar el carrito',
     };
   }
 };

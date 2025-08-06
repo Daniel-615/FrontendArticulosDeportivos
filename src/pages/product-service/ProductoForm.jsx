@@ -25,7 +25,7 @@ export default function ProductosCrudForm() {
   const cargarProductos = async () => {
     const response = await getProductos();
     if (response.success) {
-      setProductos(response.data);
+      setProductos(response.data.productos);
     }
   };
 
@@ -68,8 +68,11 @@ export default function ProductosCrudForm() {
           <a href="/empleado-panel" className="hover:text-yellow-400">
             Inicio Empleado
           </a>
-          <a href="/actualizar/producto" className="hover:text-yellow-400">
-            Actualizar Productos
+          <a href="/crear/marca" className="hover:text-yellow-400">
+            Marcas
+          </a>
+          <a href="/crear/categoria" className="hover:text-yellow-400">
+            Categoria
           </a>
           <a href="/crear/producto" className="hover:text-yellow-400">
             Crear Productos
@@ -110,6 +113,9 @@ export default function ProductosCrudForm() {
                     Precio: Q{Number(prod.precio).toFixed(2)}
                   </p>
                   <p className="text-gray-600">Stock: {prod.stock}</p>
+                  <p className="text-gray-600">Marca: {prod.marca?.nombre || "Sin marca"}</p>
+                  <p className="text-gray-600">Categoría: {prod.categoria?.nombre || "Sin categoría"}</p>
+
                 </div>
                 <div className="flex gap-2 mt-4">
                   <motion.button

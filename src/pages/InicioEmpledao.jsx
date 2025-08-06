@@ -22,6 +22,18 @@ export default function InicioEmpleado() {
           >
             Actualizar Productos
           </button>
+          <button
+            onClick={() => navigate("/crear/categoria")}
+            className="w-full text-left hover:text-blue-400"
+          >
+            Gestionar Categorías
+          </button>
+          <button
+            onClick={() => navigate("/crear/marca")}
+            className="w-full text-left hover:text-blue-400"
+          >
+            Gestionar Marcas
+          </button>
         </nav>
       </aside>
 
@@ -43,7 +55,7 @@ export default function InicioEmpleado() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Desde aquí puedes administrar productos, actualizar inventario y gestionar el contenido de la tienda.
+            Desde aquí puedes administrar productos, categorías y marcas de tu tienda.
           </motion.p>
 
           <motion.div
@@ -64,6 +76,20 @@ export default function InicioEmpleado() {
               className="bg-yellow-500 hover:bg-yellow-600 transition px-6 py-4 rounded-lg shadow-lg text-lg font-semibold text-white"
             >
               Editar / Eliminar Productos
+            </button>
+
+            <button
+              onClick={() => navigate("/crear/categoria")}
+              className="bg-green-600 hover:bg-green-700 transition px-6 py-4 rounded-lg shadow-lg text-lg font-semibold text-white"
+            >
+              Gestionar Categorías
+            </button>
+
+            <button
+              onClick={() => navigate("/crear/marca")}
+              className="bg-purple-600 hover:bg-purple-700 transition px-6 py-4 rounded-lg shadow-lg text-lg font-semibold text-white"
+            >
+              Gestionar Marcas
             </button>
           </motion.div>
         </div>

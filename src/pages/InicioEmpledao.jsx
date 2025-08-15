@@ -1,41 +1,10 @@
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
+import SidebarEmpleado from "../components/sideBar.jsx"
 export default function InicioEmpleado() {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-gray-800 text-white p-6">
-        <h2 className="text-xl font-bold mb-6">Empleado Panel</h2>
-        <nav className="space-y-4">
-          <button
-            onClick={() => navigate("/crear/producto")}
-            className="w-full text-left hover:text-blue-400"
-          >
-            Crear Producto
-          </button>
-          <button
-            onClick={() => navigate("/actualizar/producto")}
-            className="w-full text-left hover:text-blue-400"
-          >
-            Actualizar Productos
-          </button>
-          <button
-            onClick={() => navigate("/crear/categoria")}
-            className="w-full text-left hover:text-blue-400"
-          >
-            Gestionar Categorías
-          </button>
-          <button
-            onClick={() => navigate("/crear/marca")}
-            className="w-full text-left hover:text-blue-400"
-          >
-            Gestionar Marcas
-          </button>
-        </nav>
-      </aside>
+      {/* Sidebar reutilizable */}
+      <SidebarEmpleado />
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-900 text-white p-8">

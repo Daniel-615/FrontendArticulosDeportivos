@@ -7,7 +7,7 @@ import {
 } from "../../api-gateway/categoria.crud.js";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
-
+import SidebarEmpleado from "../../components/sideBar.jsx";
 export default function CategoriasCrudForm() {
   const [categorias, setCategorias] = useState([]);
   const [editando, setEditando] = useState(null);
@@ -57,16 +57,7 @@ export default function CategoriasCrudForm() {
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white p-6">
-        <h2 className="text-2xl font-bold mb-6">Empleado</h2>
-        <nav className="flex flex-col gap-4">
-          <a href="/empleado-panel" className="hover:text-yellow-400">Inicio</a>
-          <a href="/crear/marca" className="hover:text-yellow-400">Marcas</a>
-          <a href="/crear/producto" className="hover:text-yellow-400">Crear Producto</a>
-          <a href="/actualizar/producto" className="hover:text-yellow-400">Actualizar Producto</a>
-        </nav>
-      </aside>
+      <SidebarEmpleado/>
 
       {/* Main */}
       <main className="flex-1 p-8 bg-gray-100 overflow-y-auto">

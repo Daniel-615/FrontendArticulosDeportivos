@@ -43,8 +43,8 @@ export default function WishlistPage() {
           <ul className="space-y-4">
             {wishlist.map((item) => (
               <li key={item.producto.id} className="bg-white p-4 shadow rounded-md">
-                <h2 className="text-xl font-semibold">{item.producto.nombre}</h2>
-                <p>Precio: Q{item.producto.precio}</p>
+                <h2 className="text-xl font-semibold text-black">{item.producto.nombre}</h2>
+                <p className="text-black">Precio: Q{item.producto.precio}</p>
                 <button
                   onClick={() => handleRemove(item.producto.id)}
                   className="mt-2 text-red-600 hover:underline"

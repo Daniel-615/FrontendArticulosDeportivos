@@ -54,6 +54,11 @@ function Navbar() {
             <Link to="/carrito" className="hover:text-blue-400">Carrito</Link>
           </li>
         )}
+        {isAuthenticated && (user?.rol?.includes('cliente') || user?.rol?.includes('admin') || user?.rol?.includes('empleado')) &&(
+          <li>
+            <Link to="/wishlist" className="hover:text-blue-400">Wishlist</Link>
+          </li>
+        )}
         {isAuthenticated && (user?.rol?.includes('admin') || user?.rol?.includes('empleado')) &&(
           <li>
             <Link to="/empleado-panel" className="hover:text-blue-400">Empleados</Link>

@@ -88,7 +88,7 @@ export default function CartPage() {
                 <p className="text-zinc-300">
                   Precio:{" "}
                   <span className="font-medium">
-                    Q{item.producto.precio}
+                    Q{item.producto.precio} 
                   </span>
                 </p>
 

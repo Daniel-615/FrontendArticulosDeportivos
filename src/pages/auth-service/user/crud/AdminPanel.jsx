@@ -7,11 +7,12 @@ import {
   Delete,
   deactivateAccount
 } from '../../../../api-gateway/user.crud.js';
+import { toast } from 'react-toastify';
 
 function AdminPanel() {
   const [usuarios, setUsuarios] = useState([]);
   const [mostrarActivos, setMostrarActivos] = useState(true);
-  const [mensaje, setMensaje] = useState(null);
+  const [mensaje, setMensaje] = useState(null);           // banner superior (opcional)
   const [detalleUsuario, setDetalleUsuario] = useState(null);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
   const navigate = useNavigate();
@@ -23,9 +24,11 @@ function AdminPanel() {
   const cargarUsuarios = async () => {
     const response = mostrarActivos ? await findAllActivos() : await findAll();
     if (response.success) {
-      setUsuarios(response.data);
+      setUsuarios(response.data || []);
+      setMensaje(null);
     } else {
-      setMensaje(response.error);
+      setMensaje(response.error || "No se pudieron cargar los usuarios.");
+      toast.error(response.error || "No se pudieron cargar los usuarios.");
     }
   };
 
@@ -34,7 +37,8 @@ function AdminPanel() {
     if (response.success) {
       setDetalleUsuario(response.data);
     } else {
-      setMensaje(response.error);
+      setMensaje(response.error || "No se pudo obtener el detalle.");
+      toast.error(response.error || "No se pudo obtener el detalle.");
     }
   };
 
@@ -44,10 +48,11 @@ function AdminPanel() {
 
     const response = await Delete(id);
     if (response.success) {
-      alert("Usuario eliminado correctamente.");
-      cargarUsuarios();
+      toast.success(response.data?.message || "Usuario eliminado correctamente.");
+      await cargarUsuarios();
     } else {
-      setMensaje(response.error);
+      toast.error(response.error || "No se pudo eliminar el usuario.");
+      setMensaje(response.error || "No se pudo eliminar el usuario.");
     }
   };
 
@@ -57,16 +62,15 @@ function AdminPanel() {
 
     const response = await deactivateAccount(id);
     if (response.success) {
-      alert('Cuenta desactivada correctamente.');
-      cargarUsuarios();
+      toast.success(response.data?.message || 'Cuenta desactivada correctamente.');
+      await cargarUsuarios();
     } else {
-      setMensaje(response.error);
+      toast.error(response.error || 'No se pudo desactivar la cuenta.');
+      setMensaje(response.error || 'No se pudo desactivar la cuenta.');
     }
   };
 
-  const ocultarDetalles = () => {
-    setDetalleUsuario(null);
-  };
+  const ocultarDetalles = () => setDetalleUsuario(null);
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-zinc-800 text-white rounded-lg mt-10">

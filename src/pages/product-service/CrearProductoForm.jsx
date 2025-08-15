@@ -5,7 +5,7 @@ import { getMarcas } from "../../api-gateway/marca.crud.js";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
+import SidebarEmpleado from "../../components/sideBar.jsx";
 export default function CrearProductoForm() {
   const {
     register,
@@ -44,24 +44,7 @@ export default function CrearProductoForm() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-gray-800 text-white p-6">
-        <h2 className="text-xl font-bold mb-6">Panel Empleado</h2>
-        <nav className="space-y-4">
-          <button onClick={() => navigate("/empleado-panel")} className="w-full text-left hover:text-blue-400">
-            Inicio Empleado
-          </button>
-          <button onClick={() => navigate("/crear/categoria")} className="w-full text-left hover:text-blue-400">
-            Categoria
-          </button>
-          <button onClick={() => navigate("/crear/marca")} className="w-full text-left hover:text-blue-400">
-            Marcas
-          </button>
-          <button onClick={() => navigate("/actualizar/producto")} className="w-full text-left hover:text-blue-400">
-            Actualizar Productos
-          </button>
-        </nav>
-      </aside>
+      <SidebarEmpleado/>
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-900 text-white p-8">

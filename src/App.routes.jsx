@@ -21,10 +21,13 @@ import ProductosCrudForm from "./pages/product-service/ProductoForm.jsx";
 import InicioEmpleado from "./pages/InicioEmpledao.jsx";
 import CategoriasCrudForm from "./pages/product-service/CategoriasForm.jsx";
 import MarcasCrudForm from "./pages/product-service/MarcasForm.jsx";
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WishlistPage from "./pages/WishlistPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
+import TallasCrudForm from "./pages/product-service/TallaForm.jsx";
+import ProductoColorForm from "./pages/product-service/ProductoColorForm.jsx";
+import ProductoTallaCrudForm from "./pages/product-service/ProductoTallaForm.jsx";
+import ColorCrudForm from "./pages/product-service/ColorForm.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -172,6 +175,54 @@ function AppRoutes(){
                     <ProtectedRoute>
                     {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
                         <CategoriasCrudForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/crear/talla"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <TallasCrudForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/crear/color"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <ColorCrudForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/crear/color/producto"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <ProductoColorForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/crear/talla/producto"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <ProductoTallaCrudForm />
                     ) : (
                         <UnauthorizedPage />
                     )}

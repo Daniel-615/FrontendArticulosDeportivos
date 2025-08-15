@@ -1,63 +1,57 @@
-import axios from 'axios';
-
+import axios from "axios";
 const API_GATEWAY = import.meta.env.VITE_API_GATEWAY;
+const base = API_GATEWAY?.endsWith("/") ? API_GATEWAY : `${API_GATEWAY}/`;
 
-// Agregar producto a la wishlist
-export const addToWishlist = async (data) => {
+const pickMsg = (e) =>
+  e?.response?.data?.message ||
+  e?.response?.data?.error ||
+  e?.message ||
+  "Ocurrió un error";
+
+export const addToWishlist = async ({ user_id, producto_id }) => {
+  const payload = { user_id, product_id: producto_id };
   try {
-    const response = await axios.post(`${API_GATEWAY}wishlist/`, data, {
+    const { data, status } = await axios.post(`${base}wishlist/`, payload, {
       withCredentials: true,
     });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || 'Error al agregar a la wishlist',
-    };
+    return { success: true, data, status };
+  } catch (e) {
+    const status = e?.response?.status;
+    const msg = pickMsg(e);
+    console.warn("addToWishlist:", status, msg);
+    return { success: false, error: msg, status };
   }
 };
 
-// Obtener wishlist de un usuario
 export const getWishlistByUser = async (userId) => {
   try {
-    const response = await axios.get(`${API_GATEWAY}wishlist/${userId}`, {
+    const { data, status } = await axios.get(`${base}wishlist/${userId}`, {
       withCredentials: true,
     });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || 'Error al obtener la wishlist',
-    };
+    return { success: true, data, status };
+  } catch (e) {
+    return { success: false, error: pickMsg(e), status: e?.response?.status };
   }
 };
 
-// Eliminar un producto de la wishlist
 export const removeFromWishlist = async (userId, productId) => {
   try {
-    const response = await axios.delete(`${API_GATEWAY}wishlist/${userId}/${productId}`, {
+    const { data, status } = await axios.delete(`${base}wishlist/${userId}/${productId}`, {
       withCredentials: true,
     });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || 'Error al eliminar de la wishlist',
-    };
+    return { success: true, data, status };
+  } catch (e) {
+    return { success: false, error: pickMsg(e), status: e?.response?.status };
   }
 };
 
-// Vaciar wishlist completa
 export const clearWishlist = async (userId) => {
   try {
-    const response = await axios.delete(`${API_GATEWAY}wishlist/clear/${userId}`, {
+    const { data, status } = await axios.delete(`${base}wishlist/clear/${userId}`, {
       withCredentials: true,
     });
-    return { success: true, data: response.data };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data?.message || 'Error al vaciar la wishlist',
-    };
+    return { success: true, data, status };
+  } catch (e) {
+    return { success: false, error: pickMsg(e), status: e?.response?.status };
   }
 };

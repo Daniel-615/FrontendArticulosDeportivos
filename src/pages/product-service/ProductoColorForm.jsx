@@ -64,7 +64,7 @@ export default function ProductoColorForm({ id, onSuccess, onCancel }) {
     const payload = new FormData();
     payload.append("colorId", colorId);
     payload.append("productoId", productoId);
-    if (imagenFile) payload.append("imagen", imagenFile); // ✅ este nombre coincide con upload.single("imagen")
+    if (imagenFile) payload.append("imagen", imagenFile);
 
     const res = id
       ? await updateProductoColor(id, payload)

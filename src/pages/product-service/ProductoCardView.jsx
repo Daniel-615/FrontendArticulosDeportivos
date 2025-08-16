@@ -13,7 +13,7 @@ export default function ProductosCardView() {
   // Estados UI
   const [pendingWishlist, setPendingWishlist] = useState(new Set());
   const [pendingCart, setPendingCart] = useState(new Set());
-  const [inWishlist, setInWishlist] = useState(new Set()); // ids ya agregados (éxito o duplicado)
+  const [inWishlist, setInWishlist] = useState(new Set()); 
 
   useEffect(() => {
     (async () => {
@@ -121,6 +121,7 @@ export default function ProductosCardView() {
           const loadingWish = pendingWishlist.has(producto.id);
           const loadingCart = pendingCart.has(producto.id);
           const alreadyInWish = inWishlist.has(producto.id);
+          const imagenId = producto.colores?.[0]?.imagenUrl || null;
 
           return (
             <div
@@ -128,6 +129,12 @@ export default function ProductosCardView() {
               className="bg-white rounded-2xl shadow-md overflow-hidden transition-transform hover:scale-105"
             >
               <div className="p-4">
+                <img
+                  src={imagenId}
+                  alt={producto.nombre}
+                  className="w-full h-48 object-cover text-black"
+                />
+
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">{producto.nombre}</h2>
                 <p className="text-gray-600 text-sm mb-1">
                   Precio: <strong>Q{producto.precio}</strong>

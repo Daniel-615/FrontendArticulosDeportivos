@@ -12,7 +12,6 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [error, setError] = useState(null);
 
-  // Cargar carrito al iniciar
   const loadCart = async () => {
     try {
       const response = await getCartByUser(user.id);
@@ -64,14 +63,13 @@ export default function CartPage() {
     <div className="p-6 text-white min-h-screen bg-zinc-900">
       <h1 className="text-3xl font-bold mb-6">Carrito de Compras</h1>
 
-      {/* Sección de errores */}
       {error && (
         <div className="mb-6 p-4 bg-red-900 text-red-300 border border-red-500 rounded">
           <strong>Error:</strong> {error}
         </div>
       )}
 
-      {/* Si el carrito está vacío */}
+
       {Array.isArray(cartItems) && cartItems.length === 0 ? (
         <p className="text-lg text-zinc-300">Tu carrito está vacío.</p>
       ) : (
@@ -82,6 +80,7 @@ export default function CartPage() {
                 key={item.producto.id}
                 className="bg-zinc-800 p-4 rounded-md shadow-md border border-zinc-700"
               >
+                
                 <h2 className="text-xl font-semibold text-blue-400">
                   {item.producto.nombre}
                 </h2>

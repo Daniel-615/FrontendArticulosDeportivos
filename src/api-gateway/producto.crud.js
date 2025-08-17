@@ -7,7 +7,12 @@ export const createProducto = async (producto) => {
     const response = await axios.post(
       `${API_GATEWAY}product`,
       producto,
-      { withCredentials: true }
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json"
+        } 
+      }
     );
     return { success: true, data: response.data };
   } catch (error) {
@@ -21,9 +26,9 @@ export const getProductos = async () => {
       `${API_GATEWAY}product`,
       { withCredentials: true }
     );
-    console.log(response.data)
     return { success: true, data: response.data };
   } catch (error) {
+
     return handleError(error);
   }
 };

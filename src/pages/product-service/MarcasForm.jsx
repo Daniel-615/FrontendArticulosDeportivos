@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; 
 import {
   getMarcas,
   createMarca,
@@ -8,9 +8,12 @@ import {
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import SidebarEmpleado from "../../components/sideBar.jsx";
+
 export default function MarcasCrudForm() {
   const [marcas, setMarcas] = useState([]);
   const [editando, setEditando] = useState(null);
+  const [serverError, setServerError] = useState(null); // Estado para errores del backend
+
   const {
     register,
     handleSubmit,
@@ -29,17 +32,27 @@ export default function MarcasCrudForm() {
   };
 
   const onSubmit = async (data) => {
+    setServerError(null); // Limpiar errores previos
     let response;
-    if (editando) {
-      response = await updateMarca(editando, data);
-    } else {
-      response = await createMarca(data);
-    }
 
-    if (response.success) {
-      reset();
-      setEditando(null);
-      cargarMarcas();
+    try {
+      if (editando) {
+        response = await updateMarca(editando, data);
+      } else {
+        response = await createMarca(data);
+      }
+
+      if (response.success) {
+        reset();
+        setEditando(null);
+        cargarMarcas();
+      } else {
+        // Mostrar mensaje de error enviado por la API
+        setServerError(response.message || "Ocurrió un error desconocido.");
+      }
+    } catch (err) {
+      // Capturar errores de red o inesperados
+      setServerError(err.response?.data?.message || err.message || "Error al comunicarse con el servidor.");
     }
   };
 
@@ -53,13 +66,13 @@ export default function MarcasCrudForm() {
   const handleEdit = (marca) => {
     setEditando(marca.id);
     setValue("nombre", marca.nombre);
+    setServerError(null); // Limpiar errores al iniciar edición
   };
 
   return (
     <div className="flex h-screen">
-     <SidebarEmpleado/>
+      <SidebarEmpleado />
 
-      {/* Main */}
       <main className="flex-1 p-8 bg-gray-100 overflow-y-auto">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">Gestión de Marcas</h2>
 
@@ -81,8 +94,14 @@ export default function MarcasCrudForm() {
             />
             {errors.nombre && <p className="text-red-500">{errors.nombre.message}</p>}
 
+            {/* Error del backend */}
+            {serverError && <p className="text-red-500">{serverError}</p>}
+
             <div className="flex gap-4">
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
                 {editando ? "Actualizar" : "Crear"}
               </button>
               {editando && (
@@ -91,6 +110,7 @@ export default function MarcasCrudForm() {
                   onClick={() => {
                     reset();
                     setEditando(null);
+                    setServerError(null);
                   }}
                   className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
                 >

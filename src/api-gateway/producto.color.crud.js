@@ -16,9 +16,6 @@ const toFormData = (payload = {}) => {
 export const createProductoColor = async (payload) => {
   try {
     const form = toFormData(payload);
-    for (let [key, value] of form.entries()) {
-  console.log(key, value);
-}
     const { data } = await axios.post(`${BASE}/`, form, {
       withCredentials: true,
     });
@@ -42,6 +39,7 @@ export const getProductoColores = async () => {
     const { data } = await axios.get(`${BASE}/`, {
       withCredentials: true,
     });
+    console.log(data)
     return { success: true, data };
   } catch (error) {
     if (error.response) {

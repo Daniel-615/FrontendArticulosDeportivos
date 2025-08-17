@@ -97,7 +97,6 @@ export default function ProductosCrudForm() {
                   <p className="mt-2 font-semibold text-gray-700">
                     Precio: Q{Number(prod.precio).toFixed(2)}
                   </p>
-                  <p className="text-gray-600">Stock: {prod.stock}</p>
                   <p className="text-gray-600">Marca: {prod.marca?.nombre || "Sin marca"}</p>
                   <p className="text-gray-600">Categoría: {prod.categoria?.nombre || "Sin categoría"}</p>
                 </div>

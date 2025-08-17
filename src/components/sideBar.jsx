@@ -34,7 +34,7 @@ export default function SidebarEmpleado() {
       label: "Gestionar Color Producto"
     },
     {
-      path: "/crear/tala/producto",
+      path: "/crear/talla/producto",
       label: "Gestionar Talla Producto"
     }
   ];

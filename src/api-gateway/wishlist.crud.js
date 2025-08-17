@@ -8,8 +8,8 @@ const pickMsg = (e) =>
   e?.message ||
   "Ocurrió un error";
 
-export const addToWishlist = async ({ user_id, producto_id }) => {
-  const payload = { user_id, product_id: producto_id };
+export const addToWishlist = async ({ user_id, producto_talla_color_id}) => {
+  const payload = { user_id, producto_talla_color_id: producto_talla_color_id };
   try {
     const { data, status } = await axios.post(`${base}wishlist/`, payload, {
       withCredentials: true,
@@ -28,6 +28,7 @@ export const getWishlistByUser = async (userId) => {
     const { data, status } = await axios.get(`${base}wishlist/${userId}`, {
       withCredentials: true,
     });
+    console.log(data)
     return { success: true, data, status };
   } catch (e) {
     return { success: false, error: pickMsg(e), status: e?.response?.status };

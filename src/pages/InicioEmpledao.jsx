@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import SidebarEmpleado from "../components/sideBar.jsx"
+import { useNavigate } from "react-router-dom";
 export default function InicioEmpleado() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Sidebar reutilizable */}

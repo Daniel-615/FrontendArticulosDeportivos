@@ -89,20 +89,6 @@ export default function CrearProductoForm() {
               />
               {errors.precio && <span className="text-red-400 text-sm">{errors.precio.message}</span>}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium">Stock</label>
-              <input
-                type="number"
-                {...register("stock", {
-                  required: "El stock es obligatorio.",
-                  min: { value: 0, message: "El stock debe ser mayor o igual a 0." },
-                })}
-                className="mt-1 block w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2"
-              />
-              {errors.stock && <span className="text-red-400 text-sm">{errors.stock.message}</span>}
-            </div>
-
             <div>
               <label className="block text-sm font-medium">Categoría</label>
               <select

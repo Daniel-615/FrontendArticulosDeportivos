@@ -2,22 +2,37 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { postColor, getColorId, getColores, putColor } from "../../api-gateway/color.crud";
+import namer from "color-namer";
 
 export default function ColorCrudForm() {
   const [colores, setColores] = useState([]);
   const [editando, setEditando] = useState(null);
+  const [nombreManual, setNombreManual] = useState(false); // detecta si el usuario escribió manualmente
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm();
+
+  const codigoHex = watch("codigoHex");
+  const nombre = watch("nombre");
 
   useEffect(() => {
     cargarColores();
   }, []);
+
+  // Actualizar nombre automáticamente si no fue editado manualmente
+  useEffect(() => {
+    if (codigoHex && !nombreManual) {
+      const nombres = namer(codigoHex);
+      const nombreColor = nombres.ntc[0].name;
+      setValue("nombre", nombreColor);
+    }
+  }, [codigoHex, nombreManual, setValue]);
 
   const cargarColores = async () => {
     const response = await getColores();
@@ -27,14 +42,13 @@ export default function ColorCrudForm() {
 
   const onSubmit = async (data) => {
     let response;
-    if (editando) {
-      response = await putColor(editando, data);
-    } else {
-      response = await postColor(data);
-    }
+    if (editando) response = await putColor(editando, data);
+    else response = await postColor(data);
+
     if (response.success) {
       reset();
       setEditando(null);
+      setNombreManual(false);
       cargarColores();
     } else {
       alert(response.error || "No se pudo guardar el color");
@@ -47,6 +61,7 @@ export default function ColorCrudForm() {
       setEditando(id);
       setValue("nombre", response.data.nombre);
       setValue("codigoHex", response.data.codigoHex || "#000000");
+      setNombreManual(false); // reseteamos para permitir autocompletado
     } else {
       alert(response.error);
     }
@@ -55,32 +70,25 @@ export default function ColorCrudForm() {
   const cancelarEdicion = () => {
     reset();
     setEditando(null);
+    setNombreManual(false);
   };
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h2 className="text-xl font-bold mb-4">
-        {editando ? "Editar Color" : "Agregar Color"}
-      </h2>
+      <h2 className="text-xl font-bold mb-4">{editando ? "Editar Color" : "Agregar Color"}</h2>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white shadow p-4 rounded space-y-4"
-      >
-        {/* Campo nombre */}
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white shadow p-4 rounded space-y-4">
         <div>
           <label className="block mb-1 font-medium">Nombre del color</label>
           <input
             {...register("nombre", { required: "El nombre es obligatorio" })}
             className="border p-2 w-full rounded text-black"
             placeholder="Ej: Rojo"
+            onChange={() => setNombreManual(true)} // si el usuario escribe, marcamos nombreManual = true
           />
-          {errors.nombre && (
-            <p className="text-red-500 text-sm">{errors.nombre.message}</p>
-          )}
+          {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>}
         </div>
 
-        {/* Campo codigoHex */}
         <div>
           <label className="block mb-1 font-medium">Código HEX</label>
           <input
@@ -124,7 +132,7 @@ export default function ColorCrudForm() {
                 className="w-6 h-6 rounded-full border"
                 style={{ backgroundColor: color.codigoHex }}
               ></span>
-              <span>{color.nombre}</span>
+              <span className="text-black">{color.nombre}</span>
             </div>
             <button
               onClick={() => editarColor(color.id)}

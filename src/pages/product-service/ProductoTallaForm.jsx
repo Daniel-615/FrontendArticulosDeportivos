@@ -7,10 +7,15 @@ import {
   updateProductoTalla,
   deleteProductoTalla,
 } from "../../api-gateway/producto.talla.crud.js";
+import { getProductoColores } from "../../api-gateway/producto.color.crud.js";
+import { getTallas } from "../../api-gateway/talla.crud.js";
 
-export default function ProductoTallaCrudForm() {
+export default function TallaColorProductoCrudForm() {
+  const [items, setItems] = useState([]);
   const [tallas, setTallas] = useState([]);
+  const [colores, setColores] = useState([]);
   const [editando, setEditando] = useState(null);
+  const [formError, setFormError] = useState("");
 
   const {
     register,
@@ -21,146 +26,189 @@ export default function ProductoTallaCrudForm() {
   } = useForm();
 
   useEffect(() => {
+    cargarItems();
     cargarTallas();
+    cargarColores();
   }, []);
 
-  const cargarTallas = async () => {
+  const cargarItems = async () => {
     const res = await getProductoTallas();
     if (res.success) {
-      setTallas(res.data);
-    } else {
-      alert(res.error);
-    }
+      setItems(Array.isArray(res.data.tallas_color) ? res.data.tallas_color : []);
+    } else setFormError(res.error || "Error al cargar los registros");
+  };
+
+  const cargarTallas = async () => {
+    const res = await getTallas();
+    if (res.success) {
+      setTallas(Array.isArray(res.data) ? res.data : []);
+    } else setFormError(res.error || "Error al cargar tallas");
+  };
+
+  const cargarColores = async () => {
+    const res = await getProductoColores();
+    if (res.success) {
+      setColores(Array.isArray(res.data.data) ? res.data.data : []);
+    } else setFormError(res.error || "Error al cargar colores");
   };
 
   const onSubmit = async (data) => {
+    setFormError(""); // limpiar error previo
+    let payload = {
+      id_talla: data.id_talla,
+      id_producto_color: data.id_producto_color,
+      stock: data.stock,
+    };
+
     let res;
-    if (editando) {
-      res = await updateProductoTalla(editando, data);
-    } else {
-      res = await createProductoTalla(data);
-    }
+    if (editando) res = await updateProductoTalla(editando, payload);
+    else res = await createProductoTalla(payload);
 
     if (res.success) {
       reset();
       setEditando(null);
-      cargarTallas();
-    } else {
-      alert(res.error);
-    }
+      cargarItems();
+    } else setFormError(res.error || "Error al guardar el registro");
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Eliminar esta talla?")) {
+    if (window.confirm("¿Eliminar este registro?")) {
       const res = await deleteProductoTalla(id);
-      if (res.success) {
-        cargarTallas();
-      } else {
-        alert(res.error);
-      }
+      if (res.success) cargarItems();
+      else setFormError(res.error || "Error al eliminar registro");
     }
   };
 
-  const handleEdit = (talla) => {
-    setEditando(talla.id);
-    setValue("talla", talla.talla);
+  const handleEdit = (item) => {
+    setEditando(item.id);
+    setValue("id_talla", item.id_talla);
+    setValue("id_producto_color", item.id_producto_color);
+    setValue("stock", item.stock);
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white p-6">
-        <h2 className="text-2xl font-bold mb-6">Empleado</h2>
-        <nav className="flex flex-col gap-4">
-          <a href="/empleado-panel" className="hover:text-yellow-400">Inicio</a>
-          <a href="/crear/marca" className="hover:text-yellow-400">Marcas</a>
-          <a href="/crear/producto" className="hover:text-yellow-400">Crear Producto</a>
-          <a href="/actualizar/producto" className="hover:text-yellow-400">Actualizar Producto</a>
-          <a href="/crear/talla" className="hover:text-yellow-400">Tallas</a>
-        </nav>
-      </aside>
+    <div className="p-8 bg-gray-100 min-h-screen">
+      <h2 className="text-3xl font-bold mb-6 text-black" >Gestión de Talla y Color de Producto</h2>
 
-      {/* Main */}
-      <main className="flex-1 p-8 bg-gray-100 overflow-y-auto">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Gestión de Producto Tallas</h2>
+      {/* Formulario */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white shadow-md rounded-xl p-6 mb-10"
+      >
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          {editando ? "Editar Registro" : "Crear Registro"}
+        </h3>
 
-        {/* Formulario */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white shadow-md rounded-xl p-6 mb-10"
-        >
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            {editando ? "Editar Talla" : "Crear Talla"}
-          </h3>
+        {formError && <p className="mb-4 text-red-600 font-medium">{formError}</p>}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <input
-              {...register("talla", { required: "La talla es obligatoria" })}
-              placeholder="Ej. S, M, L, 38, 40..."
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Select Tallas */}
+          <div>
+            <label className="block mb-1 font-medium">Talla</label>
+            <select
+              {...register("id_talla", { required: "Selecciona una talla" })}
               className="w-full px-3 py-2 border rounded text-black"
-            />
-            {errors.talla && (
-              <p className="text-red-500">{errors.talla.message}</p>
-            )}
+              defaultValue=""
+            >
+              <option value="" disabled>-- Selecciona Talla --</option>
+              {tallas.map((t) => (
+                <option key={t.id} value={t.id}>{t.valor}</option>
+              ))}
+            </select>
+            {errors.id_talla && <p className="text-red-500">{errors.id_talla.message}</p>}
+          </div>
 
-            <div className="flex gap-4">
+          {/* Select Colores */}
+          <div>
+            <label className="block mb-1 font-medium text-black">Producto Color</label>
+            <select
+              {...register("id_producto_color", { required: "Selecciona un color" })}
+              className="w-full px-3 py-2 border rounded text-black"
+              defaultValue=""
+            >
+              <option value="" disabled>-- Selecciona Color --</option>
+              {colores.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombreProducto} - {c.nombreColor}
+                </option>
+              ))}
+            </select>
+            {errors.id_producto_color && <p className="text-red-500">{errors.id_producto_color.message}</p>}
+          </div>
+
+          {/* Stock */}
+          <input
+            type="number"
+            {...register("stock", { required: "El stock es obligatorio", min: 0 })}
+            placeholder="Stock"
+            className="w-full px-3 py-2 border rounded text-black"
+          />
+          {errors.stock && <p className="text-red-500">{errors.stock.message}</p>}
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              {editando ? "Actualizar" : "Crear"}
+            </button>
+            {editando && (
               <button
-                type="submit"
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                type="button"
+                onClick={() => { reset(); setEditando(null); setFormError(""); }}
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
               >
-                {editando ? "Actualizar" : "Crear"}
+                Cancelar
               </button>
-              {editando && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    reset();
-                    setEditando(null);
-                  }}
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                >
-                  Cancelar
-                </button>
-              )}
-            </div>
-          </form>
-        </motion.div>
+            )}
+          </div>
+        </form>
+      </motion.div>
 
-        {/* Lista */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {tallas.map((t) => (
-              <motion.div
-                key={t.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.4 }}
-                className="bg-white p-4 shadow rounded-xl"
-              >
-                <h4 className="text-lg font-semibold text-black">{t.talla}</h4>
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => handleEdit(t)}
-                    className="flex-1 bg-yellow-500 text-white py-1 rounded hover:bg-yellow-600"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(t.id)}
-                    className="flex-1 bg-red-600 text-white py-1 rounded hover:bg-red-700"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </main>
+      {/* Lista */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatePresence>
+          {items.map((item) => (
+            <motion.div
+              key={item.id}
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.4 }}
+              className="bg-white p-4 shadow rounded-xl"
+            >
+              <div className="flex items-center gap-4 mb-2">
+                {item.color?.imagenUrl && (
+                  <img src={item.color.imagenUrl} alt={item.color?.nombreColor} className="w-12 h-12 object-cover rounded" />
+                )}
+                <h4 className="text-lg font-semibold text-black">
+                  {item.color?.nombreProducto} - {item.color?.nombreColor}
+                </h4>
+              </div>
+              <p className="text-black mb-2">Talla: {item.talla}</p>
+              <p className="text-black mb-2">Stock: {item.stock}</p>
+
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="flex-1 bg-yellow-500 text-white py-1 rounded hover:bg-yellow-600"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="flex-1 bg-red-600 text-white py-1 rounded hover:bg-red-700"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

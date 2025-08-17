@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getWishlistByUser, removeFromWishlist, clearWishlist } from "../api-gateway/wishlist.crud.js";
+import {
+  getWishlistByUser,
+  removeFromWishlist,
+  clearWishlist,
+} from "../api-gateway/wishlist.crud.js";
 import { useAuth } from "../context/AuthContent.jsx";
 
 export default function WishlistPage() {
@@ -20,8 +24,8 @@ export default function WishlistPage() {
     if (user) loadWishlist();
   }, [user]);
 
-  const handleRemove = async (productId) => {
-    const response = await removeFromWishlist(user.id, productId);
+  const handleRemove = async (ptcId) => {
+    const response = await removeFromWishlist(user.id, ptcId);
     if (response.success) loadWishlist();
     else alert(response.error);
   };
@@ -41,18 +45,58 @@ export default function WishlistPage() {
       ) : (
         <>
           <ul className="space-y-4">
-            {wishlist.map((item) => (
-              <li key={item.producto.id} className="bg-white p-4 shadow rounded-md">
-                <h2 className="text-xl font-semibold text-black">{item.producto.nombre}</h2>
-                <p className="text-black">Precio: Q{item.producto.precio}</p>
-                <button
-                  onClick={() => handleRemove(item.producto.id)}
-                  className="mt-2 text-red-600 hover:underline"
+            {wishlist.map((item) => {
+              const ptc = item.producto; // ProductoTallaColor
+              if (!ptc) return null;
+
+              const producto = ptc.productoColor?.producto;
+              const color = ptc.productoColor?.colorInfo?.codigoHex;
+              const talla = ptc.tallaInfo?.valor;
+
+              return (
+                <li
+                  key={ptc.id}
+                  className="bg-white p-4 shadow rounded-md flex items-center gap-4"
                 >
-                  Eliminar
-                </button>
-              </li>
-            ))}
+                  {/* Imagen del producto */}
+                  {ptc.productoColor?.imagenUrl && (
+                    <img
+                      src={ptc.productoColor.imagenUrl}
+                      alt={producto?.nombre}
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  )}
+
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold text-black">
+                      {producto?.nombre}
+                    </h2>
+                    <p className="text-black">Precio: Q{producto?.precio}</p>
+
+                    {color && (
+                      <p className="text-gray-600">
+                        Color:
+                        <span
+                          className="inline-block w-4 h-4 rounded-full border ml-1 align-middle"
+                          style={{ backgroundColor: color }}
+                        ></span>
+                      </p>
+                    )}
+
+                    {talla && (
+                      <p className="text-gray-600">Talla: {talla}</p>
+                    )}
+
+                    <button
+                      onClick={() => handleRemove(ptc.id)}
+                      className="mt-2 text-red-600 hover:underline"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
           <button
             onClick={handleClear}

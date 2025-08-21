@@ -39,7 +39,6 @@ export const getProductoColores = async () => {
     const { data } = await axios.get(`${BASE}/`, {
       withCredentials: true,
     });
-    console.log(data)
     return { success: true, data };
   } catch (error) {
     if (error.response) {

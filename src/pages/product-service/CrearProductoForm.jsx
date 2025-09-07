@@ -89,6 +89,59 @@ export default function CrearProductoForm() {
               />
               {errors.precio && <span className="text-red-400 text-sm">{errors.precio.message}</span>}
             </div>
+            {/* Uso para el calculo del envio, peso, ancho, alto, largo */}
+            <div>
+              <label className="block text-sm font-medium">Peso</label>
+              <input
+                type="number"
+                step="0.01"
+                {...register("peso", {
+                  required: "El peso es obligatorio.",
+                  min: { value: 0, message: "El peso debe ser mayor o igual a 0." },
+                })}
+                className="mt-1 block w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2"
+              />
+              {errors.peso && <span className="text-red-400 text-sm">{errors.peso.message}</span>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Ancho</label>
+              <input
+                type="number"
+                step="0.01"
+                {...register("ancho", {
+                  required: "El ancho es obligatorio.",
+                  min: { value: 0, message: "El ancho debe ser mayor o igual a 0." },
+                })}
+                className="mt-1 block w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2"
+              />
+              {errors.ancho && <span className="text-red-400 text-sm">{errors.ancho.message}</span>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Alto (Q)</label>
+              <input
+                type="number"
+                step="0.01"
+                {...register("alto", {
+                  required: "El alto es obligatorio.",
+                  min: { value: 0, message: "El alto debe ser mayor o igual a 0." },
+                })}
+                className="mt-1 block w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2"
+              />
+              {errors.alto && <span className="text-red-400 text-sm">{errors.alto.message}</span>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Largo </label>
+              <input
+                type="number"
+                step="0.01"
+                {...register("largo", {
+                  required: "El largo es obligatorio.",
+                  min: { value: 0, message: "El largo debe ser mayor o igual a 0." },
+                })}
+                className="mt-1 block w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2"
+              />
+              {errors.largo && <span className="text-red-400 text-sm">{errors.largo.message}</span>}
+            </div>
             <div>
               <label className="block text-sm font-medium">Categoría</label>
               <select

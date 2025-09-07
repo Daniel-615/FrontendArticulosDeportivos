@@ -25,6 +25,7 @@ export default function ProductosCrudForm() {
 
   const cargarProductos = async () => {
     const response = await getProductos();
+    console.log(response)
     if (response.success) {
       setProductos(response.data.productos);
     }
@@ -97,6 +98,10 @@ export default function ProductosCrudForm() {
                   <p className="mt-2 font-semibold text-gray-700">
                     Precio: Q{Number(prod.precio).toFixed(2)}
                   </p>
+                  <p className="text-gray-600 text-sm mt-1">Peso: {prod.peso}</p>
+                  <p className="text-gray-600 text-sm mt-1">Ancho: {prod.ancho}</p>
+                  <p className="text-gray-600 text-sm mt-1">Alto: {prod.alto}</p>
+                  <p className="text-gray-600 text-sm mt-1">Largo: {prod.largo}</p>
                   <p className="text-gray-600">Marca: {prod.marca?.nombre || "Sin marca"}</p>
                   <p className="text-gray-600">Categoría: {prod.categoria?.nombre || "Sin categoría"}</p>
                 </div>
@@ -135,7 +140,95 @@ export default function ProductosCrudForm() {
             >
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Editar Producto</h3>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* ...inputs y botones igual que antes */}
+                <div>
+                  <label className="block text-gray-700">Nombre</label>
+                  <input
+                    type="text"
+                    {...register("nombre", { required: "Nombre requerido" })}
+                    className="w-full border px-3 py-2 rounded text-black" 
+                  />
+                  {errors.nombre && <span className="text-red-500 text-sm">{errors.nombre.message}</span>}
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 ">Descripción</label>
+                  <textarea
+                    {...register("descripcion", { required: "Descripción requerida" })}
+                    className="w-full border px-3 py-2 rounded text-black"
+                  />
+                  {errors.descripcion && <span className="text-red-500 text-sm">{errors.descripcion.message}</span>}
+                </div>
+
+                <div>
+                  <label className="block text-gray-700">Precio</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("precio", { required: "Precio requerido" })}
+                    className="w-full border px-3 py-2 rounded text-black"
+                  />
+                  {errors.precio && <span className="text-red-500 text-sm">{errors.precio.message}</span>}
+                </div>
+
+                <div>
+                  <label className="block text-gray-700">Peso</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("peso")}
+                    className="w-full border px-3 py-2 rounded text-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700">Ancho</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("ancho")}
+                    className="w-full border px-3 py-2 rounded text-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700">Alto</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("alto")}
+                    className="w-full border px-3 py-2 rounded text-black"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700">Largo</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("largo")}
+                    className="w-full border px-3 py-2 rounded text-black"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      reset();
+                      setEditando(null);
+                    }}
+                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Guardar Cambios
+                  </button>
+                </div>
+
               </form>
             </motion.div>
           )}

@@ -340,11 +340,11 @@ export default function ProductosCardView() {
           <button
             onClick={handlePrevPage}
             disabled={page === 1}
-            className="flex items-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 border border-gray-200"
+            className="flex items-center gap-2 px-6 py-3 text-gray-700 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 border border-gray-200"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            </svg >
             Anterior
           </button>
 
@@ -358,7 +358,7 @@ export default function ProductosCardView() {
           <button
             onClick={handleNextPage}
             disabled={page === totalPages}
-            className="flex items-center gap-2 px-6 py-3 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 border border-gray-200"
+            className="flex items-center gap-2 px-6 py-3 text-gray-700 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50 border border-gray-200"
           >
             Siguiente
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

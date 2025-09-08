@@ -56,3 +56,45 @@ export const clearWishlist = async (userId) => {
     return { success: false, error: pickMsg(e), status: e?.response?.status };
   }
 };
+export const createOrRefreshWishlistShare = async (userId, body = {}) => {
+  try {
+    const { data, status } = await axios.post(
+      `${base}wishlist/share/${userId}`,
+      body,
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    return { success: true, data, status };
+  } catch (e) {
+    return { success: false, error: pickMsg(e), status: e?.response?.status };
+  }
+};
+
+
+export const revokeWishlistShare = async (userId) => {
+  try {
+    const { data, status } = await axios.delete(
+      `${base}wishlist/share/${userId}`,
+      { withCredentials: true }
+    );
+    return { success: true, data, status };
+  } catch (e) {
+    return { success: false, error: pickMsg(e), status: e?.response?.status };
+  }
+};
+
+
+export const getPublicWishlistByShareId = async (shareId) => {
+  try {
+    const { data, status } = await axios.get(
+      `${base}wishlist/shared/${shareId}`,
+      { withCredentials: false }
+    );
+
+    return { success: true, data, status };
+  } catch (e) {
+    return { success: false, error: pickMsg(e), status: e?.response?.status };
+  }
+};

@@ -28,6 +28,7 @@ import TallasCrudForm from "./pages/product-service/TallaForm.jsx";
 import ProductoColorForm from "./pages/product-service/ProductoColorForm.jsx";
 import ProductoTallaCrudForm from "./pages/product-service/ProductoTallaForm.jsx";
 import ColorCrudForm from "./pages/product-service/ColorForm.jsx";
+import PublicWishlist from "./pages/PublicWishlistPage.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -38,10 +39,11 @@ function AppRoutes(){
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<PageNotFound />} />
+            <Route path="/wishlist/shared/:shareId" element={<PublicWishlist/>}/>
             {/* Protegidas */}
             <Route path="/" element={
                 <ProtectedRoute>
-                <HomePage />
+                    <HomePage />
                 </ProtectedRoute>
             } />
             <Route path="/register-employee" element={

@@ -2,13 +2,13 @@ import { useEffect, useState } from "react"
 import { getCartByUser, updateCartItem, removeFromCart, clearCart } from "../api-gateway/carrito.crud.js"
 import { useAuth } from "../context/AuthContent.jsx"
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
-
+import { useNavigate } from "react-router-dom";
 export default function CartPage() {
   const { user } = useAuth()
   const [cartItems, setCartItems] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-
+  const navigate = useNavigate();
   const loadCart = async () => {
     setLoading(true)
     try {
@@ -104,7 +104,9 @@ export default function CartPage() {
               </div>
               <h2 className="text-3xl font-bold text-slate-300 mb-4">Tu carrito está vacío</h2>
               <p className="text-slate-400 text-lg mb-8">¡Descubre nuestros increíbles productos deportivos!</p>
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+              <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                onClick={() => navigate("/producto/")}
+              >
                 Explorar Productos
               </button>
             </div>

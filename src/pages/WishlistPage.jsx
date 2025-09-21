@@ -18,7 +18,6 @@ export default function WishlistPage() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // 👇 estado para compartir
   const [shareLink, setShareLink] = useState("")
   const [sharing, setSharing] = useState(false)
   const [revoking, setRevoking] = useState(false)

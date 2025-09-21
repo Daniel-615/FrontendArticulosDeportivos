@@ -50,7 +50,18 @@ export default function CartPage() {
     if (response.success) loadCart()
     else setError(response.error || "No se pudo vaciar el carrito.")
   }
-
+  //agregar estas dos cuando ya esten listas
+  const handlePago= async()=>{
+    //const response= await hacerPago()
+    console.log("Pago efectuado") 
+    //if(response.success) loadPago()
+    //else setError(response.error || "No se pudo hacer el pago")
+  }
+  const handleCalcularEnvio=async()=>{
+    //const response= await CalcularEnvio()
+    //if(response.success) loadEnvio()
+    //else setError(response.error || "No se pudo calcular el envio")
+  }
   const totalPrice = cartItems.reduce((total, item) => {
     const price = Number.parseFloat(item.producto?.productoColor?.producto.precio || 0)
     return total + price * item.cantidad
@@ -216,10 +227,18 @@ export default function CartPage() {
                   <span className="font-medium">Vaciar Carrito</span>
                 </button>
 
-                <button className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                <button className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  onClick={handlePago}
+                >
                   Proceder al Pago
                 </button>
+                <button 
+                  onClick={handleCalcularEnvio}
+                  className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                  Calcular envio
+                </button>
               </div>
+              
             </div>
           </>
         )}

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { LoginGoogleRequest } from '../../../api-gateway/auth.js';
 import { useNavigate, Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
-import { useAuth } from '../../../context/AuthContent.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
 
 function LoginPage() {
   const { register, handleSubmit, reset } = useForm();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useAuth } from "../../context/AuthContent.jsx"
+import { useAuth } from "../../context/AuthContext.jsx"
 import { getProductos } from "../../api-gateway/producto.crud.js"
 import { addToCart } from "../../api-gateway/carrito.crud.js"
 import { addToWishlist } from "../../api-gateway/wishlist.crud.js"

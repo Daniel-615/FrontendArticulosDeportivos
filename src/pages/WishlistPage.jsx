@@ -6,7 +6,7 @@ import {
   createOrRefreshWishlistShare,   
   revokeWishlistShare             
 } from "../api-gateway/wishlist.crud.js"
-import { useAuth } from "../context/AuthContent.jsx"
+import { useAuth } from "../context/AuthContext.jsx"
 import { Heart, Trash2, ShoppingBag, Star, ArrowRight, Share2, Copy, RefreshCw, ShieldX } from "lucide-react" // 👈 NUEVOS ICONOS
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../api-gateway/carrito.crud.js";

@@ -8,7 +8,7 @@ import UpdateUserPage from "./pages/auth-service/user/crud/UpdateUserPage";
 import ShenronAnimation from "./pages/shenronAnimation";
 import AdminPanel from "./pages/auth-service/user/crud/AdminPanel.jsx";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { useAuth } from "./context/AuthContent";
+import { useAuth } from "./context/AuthContext";
 import { Routes, Route } from "react-router-dom";
 import UnauthorizedPage from "./pages/UnauthorizedPage.jsx";
 import AdminPermiso from "./pages/auth-service/permiso/AdminPermiso.jsx";
@@ -29,6 +29,8 @@ import ProductoColorForm from "./pages/product-service/ProductoColorForm.jsx";
 import ProductoTallaCrudForm from "./pages/product-service/ProductoTallaForm.jsx";
 import ColorCrudForm from "./pages/product-service/ColorForm.jsx";
 import PublicWishlist from "./pages/PublicWishlistPage.jsx";
+import PaymentSuccess from "./pages/checkout/paymentSuccess.jsx";
+import PaymentCancel from "./pages/checkout/paymentCancel.jsx"; 
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -40,6 +42,8 @@ function AppRoutes(){
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<PageNotFound />} />
             <Route path="/wishlist/shared/:shareId" element={<PublicWishlist/>}/>
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/cancel" element={<PaymentCancel />} />
             {/* Protegidas */}
             <Route path="/" element={
                 <ProtectedRoute>

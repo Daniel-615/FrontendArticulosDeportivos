@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react"
 import { getCartByUser, updateCartItem, removeFromCart, clearCart } from "../api-gateway/carrito.crud.js"
-import { useAuth } from "../context/AuthContent.jsx"
+import { useAuth } from "../context/AuthContext.jsx"
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
 import { useNavigate } from "react-router-dom";
+import { calcularEnvioRequest } from "../api-gateway/tarifa.envio.crud.js";
+import { pay } from "../api-gateway/stripe.js";
+
 export default function CartPage() {
   const { user } = useAuth()
   const [cartItems, setCartItems] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [paying, setPaying] = useState(false) // <-- NUEVO: estado de pago
   const navigate = useNavigate();
+
   const loadCart = async () => {
     setLoading(true)
     try {
@@ -50,18 +55,45 @@ export default function CartPage() {
     if (response.success) loadCart()
     else setError(response.error || "No se pudo vaciar el carrito.")
   }
-  //agregar estas dos cuando ya esten listas
-  const handlePago= async()=>{
-    //const response= await hacerPago()
-    console.log("Pago efectuado") 
-    //if(response.success) loadPago()
-    //else setError(response.error || "No se pudo hacer el pago")
+
+  // ====== NUEVO: Proceder al pago con Stripe via pay(items) ======
+  const handlePago = async () => {
+    try {
+      setError(null)
+
+      if (!user?.id) {
+        setError("Debes iniciar sesión para continuar con el pago.")
+        return
+      }
+      if (!Array.isArray(cartItems) || cartItems.length === 0) {
+        setError("Tu carrito está vacío.")
+        return
+      }
+
+      setPaying(true)
+
+      // Construye los items mínimos. ⚠️ El backend debe recalcular precios desde la BD.
+      const items = cartItems.map((ci) => ({
+        id: ci.producto_talla_color_id, // para consulta en backend
+        name: ci.producto?.productoColor?.producto?.nombre || "Producto",
+        price: Number(ci.producto?.productoColor?.producto?.precio || 0), // si trabajas en Q, convierte a USD en backend
+        quantity: Number(ci.cantidad || 1),
+      }))
+
+      await pay(items) // redirige a Stripe Checkout
+    } catch (e) {
+      console.error(e)
+      setError(e?.message || "No se pudo iniciar el pago.")
+      setPaying(false) // solo vuelve si falla (si redirige exitosamente, no regresa)
+    }
   }
-  const handleCalcularEnvio=async()=>{
-    //const response= await CalcularEnvio()
-    //if(response.success) loadEnvio()
-    //else setError(response.error || "No se pudo calcular el envio")
+
+  const handleCalcularEnvio = async () => {
+    // TODO: integra tu flujo real
+    // const response = await calcularEnvioRequest(...)
+    // if (!response.success) setError(response.error || "No se pudo calcular el envío")
   }
+
   const totalPrice = cartItems.reduce((total, item) => {
     const price = Number.parseFloat(item.producto?.productoColor?.producto.precio || 0)
     return total + price * item.cantidad
@@ -221,20 +253,26 @@ export default function CartPage() {
               <div className="flex gap-4">
                 <button
                   onClick={handleClear}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-xl transition-all duration-300 border border-red-500/30 hover:border-red-500/50"
+                  className="flex items-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-xl transition-all duración-300 border border-red-500/30 hover:border-red-500/50"
+                  disabled={loading || paying}
                 >
                   <Trash2 className="w-5 h-5" />
                   <span className="font-medium">Vaciar Carrito</span>
                 </button>
 
-                <button className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                <button
+                  className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={handlePago}
+                  disabled={paying || loading || !cartItems.length}
                 >
-                  Proceder al Pago
+                  {paying ? "Redirigiendo a Stripe..." : "Proceder al Pago"}
                 </button>
+
                 <button 
                   onClick={handleCalcularEnvio}
-                  className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                  className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  disabled={loading || paying}
+                >
                   Calcular envio
                 </button>
               </div>

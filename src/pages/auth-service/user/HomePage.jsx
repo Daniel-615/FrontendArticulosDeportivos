@@ -1,4 +1,4 @@
-import { useAuth } from '../../../context/AuthContent.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
 import { FaRunning } from 'react-icons/fa';
 
 function HomePage() {

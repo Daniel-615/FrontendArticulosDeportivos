@@ -33,12 +33,12 @@ export const createTarifaEnvio = async (payload) => {
 };
 
 
-export const getTarifaEnvios = async (params) => {
+export const getTarifaEnvios = async () => {
 
   try {
     const res = await axios.get(
       `${API_GATEWAY}tarifa_envio`,
-      { withCredentials: true, params }
+      { withCredentials: true }
     );
     return ok(res.data);
   } catch (err) {

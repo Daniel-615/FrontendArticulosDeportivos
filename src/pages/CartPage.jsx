@@ -11,7 +11,7 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [paying, setPaying] = useState(false) // <-- NUEVO: estado de pago
+  const [paying, setPaying] = useState(false) 
   const navigate = useNavigate();
 
   const loadCart = async () => {
@@ -72,19 +72,18 @@ export default function CartPage() {
 
       setPaying(true)
 
-      // Construye los items mínimos. ⚠️ El backend debe recalcular precios desde la BD.
       const items = cartItems.map((ci) => ({
-        id: ci.producto_talla_color_id, // para consulta en backend
+        id: ci.producto_talla_color_id, 
         name: ci.producto?.productoColor?.producto?.nombre || "Producto",
-        price: Number(ci.producto?.productoColor?.producto?.precio || 0), // si trabajas en Q, convierte a USD en backend
+        price: Number(ci.producto?.productoColor?.producto?.precio || 0), 
         quantity: Number(ci.cantidad || 1),
       }))
 
-      await pay(items) // redirige a Stripe Checkout
+      await pay(items) 
     } catch (e) {
       console.error(e)
       setError(e?.message || "No se pudo iniciar el pago.")
-      setPaying(false) // solo vuelve si falla (si redirige exitosamente, no regresa)
+      setPaying(false) 
     }
   }
 

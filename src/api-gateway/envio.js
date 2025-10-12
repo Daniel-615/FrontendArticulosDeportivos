@@ -11,11 +11,15 @@ const fail=(err,fallback="Error del servidor")=>{
     }
     return { success: false, error: "Error de red o del servidor"};
 }
+//sin usar
 export const createEnvio= async(payload)=>{
     try{
         const response=await axios.post(
             `${API_GATEWAY}envio`,
-            payload
+            payload,
+            {
+                withCredentials: true
+            }
         )
         return ok(response.data);
     }catch(err){
@@ -25,7 +29,10 @@ export const createEnvio= async(payload)=>{
 export const getEnvios= async()=>{
     try{
         const response= await axios.get(
-            `${API_GATEWAY}/envio`
+            `${API_GATEWAY}envio`,
+            {
+                withCredentials:true
+            }
         )
         return ok(response.data)
     }catch(err){
@@ -35,7 +42,10 @@ export const getEnvios= async()=>{
 export const getEnvioGuia= async(numero_guia)=>{
     try{
         const response=await axios.get(
-            `${API_GATEWAY}envio/${numero_guia}`
+            `${API_GATEWAY}envio/${numero_guia}`,
+            {
+                withCredentials: true
+            }
         )
         return ok(response.data)
     }catch(err){
@@ -46,7 +56,10 @@ export const putEnvioGuia= async(numero_guia, payload)=>{
     try{
         const response= await axios.put(
             `${API_GATEWAY}envio/${numero_guia}`,
-            payload
+            payload,
+            {
+                withCredentials: true
+            }
         )
         return ok(response.data)
     }catch(err){

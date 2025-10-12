@@ -1,102 +1,255 @@
-import { useEffect, useState } from "react"
-import { getCartByUser, updateCartItem, removeFromCart, clearCart } from "../api-gateway/carrito.crud.js"
-import { useAuth } from "../context/AuthContext.jsx"
-import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
+import { useEffect, useState } from "react";
+import {
+  getCartByUser,
+  updateCartItem,
+  removeFromCart,
+  clearCart,
+} from "../api-gateway/carrito.crud.js";
+import { useAuth } from "../context/AuthContext.jsx";
+import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { calcularEnvioRequest } from "../api-gateway/tarifa.envio.crud.js";
 import { pay } from "../api-gateway/stripe.js";
 
+import MapDistancePicker from "../components/mapDistancePicker.jsx";
+
+// --- Origen fijo: Bodega en Antigua Guatemala ---
+const WAREHOUSE_ANTIGUA = {
+  name: "Bodega - Antigua Guatemala",
+  lat: 14.5595,
+  lng: -90.7343,
+};
+
 export default function CartPage() {
-  const { user } = useAuth()
-  const [cartItems, setCartItems] = useState([])
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [paying, setPaying] = useState(false) 
+  const { user } = useAuth();
+  const [cartItems, setCartItems] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [paying, setPaying] = useState(false);
+
+  // Envío
+  const [quoting, setQuoting] = useState(false);
+  const [quote, setQuote] = useState(null);
+
+  // NIT (habilitado tras cotizar). Por defecto "CF"
+  const [nit, setNit] = useState("CF");
+  const [nitError, setNitError] = useState("");
+
+  const [coords, setCoords] = useState({
+    origin: { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
+    destination: null,
+    distanceKm: 0,
+  });
+
   const navigate = useNavigate();
 
   const loadCart = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await getCartByUser(user.id)
+      const response = await getCartByUser(user.id);
       if (response.success) {
-        setCartItems(response.data || [])
-        setError(null)
+        setCartItems(response.data || []);
+        setError(null);
       } else {
-        setCartItems([])
-        setError(response.error || "No se pudo cargar el carrito.")
+        setCartItems([]);
+        setError(response.error || "No se pudo cargar el carrito.");
       }
     } catch {
-      setCartItems([])
-      setError("Error inesperado al obtener el carrito.")
+      setCartItems([]);
+      setError("Error inesperado al obtener el carrito.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (user) loadCart()
-  }, [user])
+    if (user) loadCart();
+  }, [user]);
 
+  // Invalida cotización si cambian cantidades o se eliminan items
   const handleUpdate = async (ptc_id, cantidad) => {
-    if (cantidad < 1) return
-    const response = await updateCartItem(user.id, ptc_id, cantidad)
-    if (response.success) loadCart()
-    else setError(response.error || "No se pudo actualizar la cantidad.")
-  }
+    if (cantidad < 1) return;
+    const response = await updateCartItem(user.id, ptc_id, cantidad);
+    if (response.success) {
+      setQuote(null);
+      loadCart();
+    } else setError(response.error || "No se pudo actualizar la cantidad.");
+  };
 
   const handleRemove = async (ptc_id) => {
-    const response = await removeFromCart(user.id, ptc_id)
-    if (response.success) loadCart()
-    else setError(response.error || "No se pudo eliminar el producto.")
-  }
+    const response = await removeFromCart(user.id, ptc_id);
+    if (response.success) {
+      setQuote(null);
+      loadCart();
+    } else setError(response.error || "No se pudo eliminar el producto.");
+  };
 
   const handleClear = async () => {
-    const response = await clearCart(user.id)
-    if (response.success) loadCart()
-    else setError(response.error || "No se pudo vaciar el carrito.")
-  }
+    const response = await clearCart(user.id);
+    if (response.success) {
+      setQuote(null);
+      loadCart();
+    } else setError(response.error || "No se pudo vaciar el carrito.");
+  };
 
-  // ====== NUEVO: Proceder al pago con Stripe via pay(items) ======
+  const isNitValid = (value) => {
+    if (!value) return false;
+    const v = String(value).trim();
+    if (/^cf$/i.test(v)) return true;
+    return /^(\d+|\d+-?\d+[kK]?)$/.test(v);
+  };
+
+  const handleNitChange = (val) => {
+    setNit(val);
+    if (!val) {
+      setNitError("El NIT es requerido. Si no desea facturar, use CF.");
+    } else if (!isNitValid(val)) {
+      setNitError("NIT inválido. Ejemplos: CF, 1234567, 1234567-8, 1234567-K");
+    } else {
+      setNitError("");
+    }
+  };
+
+
+  useEffect(() => {
+    setQuote(null);
+  }, [coords.destination]);
+
+
   const handlePago = async () => {
     try {
-      setError(null)
+      setError(null);
 
       if (!user?.id) {
-        setError("Debes iniciar sesión para continuar con el pago.")
-        return
+        setError("Debes iniciar sesión para continuar con el pago.");
+        return;
       }
       if (!Array.isArray(cartItems) || cartItems.length === 0) {
-        setError("Tu carrito está vacío.")
-        return
+        setError("Tu carrito está vacío.");
+        return;
+      }
+      if (!quote) {
+        setError("Primero calcula el envío para continuar con el pago.");
+        return;
+      }
+      if (!isNitValid(nit)) {
+        setError("Debes ingresar un NIT válido (o CF).");
+        return;
       }
 
-      setPaying(true)
+      setPaying(true);
+
 
       const items = cartItems.map((ci) => ({
-        id: ci.producto_talla_color_id, 
         name: ci.producto?.productoColor?.producto?.nombre || "Producto",
-        price: Number(ci.producto?.productoColor?.producto?.precio || 0), 
+        price: Number(ci.producto?.productoColor?.producto?.precio || 0),
         quantity: Number(ci.cantidad || 1),
-      }))
+        producto_talla_id: Number(ci.producto_talla_color_id || 0),
+      }));
 
-      await pay(items) 
+      items.push({
+        name: "Envío",
+        price: Number(quote.total_envio || 0),
+        quantity: 1,
+
+      });
+
+      await pay({
+        userId: user.id,
+        nit: String(nit).trim().toUpperCase(),
+        items,
+      });
+
     } catch (e) {
-      console.error(e)
-      setError(e?.message || "No se pudo iniciar el pago.")
-      setPaying(false) 
+      console.error(e);
+      setError(e?.message || "No se pudo iniciar el pago.");
+      setPaying(false);
     }
+  };
+
+
+  function mapCartToShippingItems(list) {
+    return list.map((ci) => {
+      const p = ci.producto?.productoColor?.producto || {};
+      const alto = Number(p.alto ?? p.alto_cm ?? 0);
+      const ancho = Number(p.ancho ?? p.ancho_cm ?? 0);
+      const largo = Number(p.largo ?? p.largo_cm ?? 0);
+      const peso = Number(p.peso ?? p.peso_kg ?? 0);
+      const precio = Number(p.precio ?? 0);
+
+      return {
+        alto,
+        ancho,
+        largo,
+        peso,
+        precio,
+        cantidad: Number(ci.cantidad ?? 1),
+        fragil: Boolean(p.fragil ?? false),
+
+        // metadatos para UI
+        nombre: p.nombre || "Producto",
+        sku: p.sku || undefined,
+        imagenUrl: ci.producto?.productoColor?.imagenUrl,
+        talla: ci.producto?.tallaInfo?.valor,
+      };
+    });
   }
 
+  // Calcular envío (backend hace Haversine)
   const handleCalcularEnvio = async () => {
-    // TODO: integra tu flujo real
-    // const response = await calcularEnvioRequest(...)
-    // if (!response.success) setError(response.error || "No se pudo calcular el envío")
-  }
+    try {
+      setError(null);
+      setQuote(null);
 
-  const totalPrice = cartItems.reduce((total, item) => {
-    const price = Number.parseFloat(item.producto?.productoColor?.producto.precio || 0)
-    return total + price * item.cantidad
-  }, 0)
+      if (!user?.id) {
+        setError("Debes iniciar sesión para calcular el envío.");
+        return;
+      }
+      if (!Array.isArray(cartItems) || cartItems.length === 0) {
+        setError("Tu carrito está vacío.");
+        return;
+      }
+      if (!coords?.destination) {
+        setError("Selecciona un destino en el mapa.");
+        return;
+      }
+
+      const items = mapCartToShippingItems(cartItems);
+
+      const payload = {
+        items,
+        envio: {
+          origen_lat: WAREHOUSE_ANTIGUA.lat,
+          origen_lng: WAREHOUSE_ANTIGUA.lng,
+          destino_lat: coords.destination.lat,
+          destino_lng: coords.destination.lng,
+        },
+      };
+
+      setQuoting(true);
+      const resp = await calcularEnvioRequest(payload);
+      if (!resp.success) {
+        setError(resp.error || "No se pudo calcular el envío.");
+        return;
+      }
+      setQuote(resp.data);
+      // Resetea el NIT al calcular (opcional): mantener CF por defecto
+      setNit("CF");
+      setNitError("");
+    } catch (e) {
+      console.error(e);
+      setError(e?.message || "Error al calcular el envío.");
+    } finally {
+      setQuoting(false);
+    }
+  };
+
+  const totalProductos = cartItems.reduce((total, item) => {
+    const price = Number(item.producto?.productoColor?.producto?.precio || 0);
+    return total + price * item.cantidad;
+  }, 0);
+
+  const totalConEnvio = (totalProductos + Number(quote?.total_envio || 0)).toFixed(2);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -146,7 +299,8 @@ export default function CartPage() {
               </div>
               <h2 className="text-3xl font-bold text-slate-300 mb-4">Tu carrito está vacío</h2>
               <p className="text-slate-400 text-lg mb-8">¡Descubre nuestros increíbles productos deportivos!</p>
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              <button
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                 onClick={() => navigate("/producto/")}
               >
                 Explorar Productos
@@ -158,7 +312,7 @@ export default function CartPage() {
             <div className="grid gap-6 mb-8">
               {cartItems.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={item.producto_talla_color_id ?? index}
                   className="group bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm border border-slate-600/30 rounded-2xl p-6 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-300"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
@@ -170,7 +324,7 @@ export default function CartPage() {
                             item.producto?.productoColor?.imagenUrl ||
                             "/placeholder.svg?height=96&width=96&query=sports+product"
                           }
-                          alt={item.producto?.nombre || "Producto"}
+                          alt={item.producto?.productoColor?.producto?.nombre || "Producto"}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
@@ -181,19 +335,19 @@ export default function CartPage() {
 
                     <div className="flex-1">
                       <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-                        {item.producto?.productoColor?.producto.nombre || "Producto no disponible"}
+                        {item.producto?.productoColor?.producto?.nombre || "Producto no disponible"}
                       </h2>
                       <div className="flex items-center gap-6 text-slate-300">
                         <div className="flex items-center gap-2">
                           <span className="text-sm">Precio:</span>
                           <span className="text-xl font-bold text-green-400">
-                            Q{item.producto?.productoColor?.producto.precio ?? "0"}
+                            Q{item.producto?.productoColor?.producto?.precio ?? "0"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm">Talla:</span>
                           <span className="px-3 py-1 bg-slate-600 rounded-full text-sm font-medium">
-                            {item.producto.tallaInfo?.valor || "No disponible"}
+                            {item.producto?.tallaInfo?.valor || "No disponible"}
                           </span>
                         </div>
                       </div>
@@ -202,7 +356,9 @@ export default function CartPage() {
                     <div className="flex flex-col items-end gap-4">
                       <div className="flex items-center gap-3 bg-slate-700/50 rounded-xl p-2">
                         <button
-                          onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad - 1)}
+                          onClick={() =>
+                            handleUpdate(item.producto_talla_color_id, item.cantidad - 1)
+                          }
                           disabled={item.cantidad <= 1}
                           className="p-2 bg-slate-600 hover:bg-slate-500 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg transition-colors"
                         >
@@ -212,11 +368,15 @@ export default function CartPage() {
                           type="number"
                           min="1"
                           value={item.cantidad}
-                          onChange={(e) => handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))}
+                          onChange={(e) =>
+                            handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))
+                          }
                           className="w-16 px-3 py-2 text-center rounded-lg bg-slate-600 text-white border border-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                         />
                         <button
-                          onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad + 1)}
+                          onClick={() =>
+                            handleUpdate(item.producto_talla_color_id, item.cantidad + 1)
+                          }
                           className="p-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
                         >
                           <Plus className="w-4 h-4" />
@@ -242,44 +402,172 @@ export default function CartPage() {
                   <p className="text-slate-400">Total de productos: {cartItems.length}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-slate-400 mb-1">Total a pagar:</p>
+                  <p className="text-slate-400 mb-1">Total productos:</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-                    Q{totalPrice.toFixed(2)}
+                    Q{totalProductos.toFixed(2)}
                   </p>
                 </div>
+              </div>
+
+              {/* --- Origen/Destino --- */}
+              <div className="mb-4 text-slate-300 text-sm">
+                <div>
+                  <span className="font-semibold text-slate-200">Origen: </span>
+                  {WAREHOUSE_ANTIGUA.name} ({WAREHOUSE_ANTIGUA.lat.toFixed(5)}, {WAREHOUSE_ANTIGUA.lng.toFixed(5)})
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-200">Destino: </span>
+                  {coords.destination
+                    ? `${coords.destination.lat.toFixed(5)}, ${coords.destination.lng.toFixed(5)}`
+                    : "Selecciona un destino en el mapa"}
+                </div>
+              </div>
+
+              {/* --- Mapa (solo destino; origen fijo) --- */}
+              <div className="grid gap-4 mb-4">
+                <MapDistancePicker
+                  defaultOrigin={{ lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng }}
+                  value={coords}
+                  onChange={(next) => {
+                    setCoords({
+                      origin: { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
+                      destination: next?.destination ?? null,
+                      distanceKm: next?.distanceKm ?? 0,
+                    });
+                  }}
+                  height="320px"
+                />
               </div>
 
               <div className="flex gap-4">
                 <button
                   onClick={handleClear}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-xl transition-all duración-300 border border-red-500/30 hover:border-red-500/50"
-                  disabled={loading || paying}
+                  className="flex items-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-xl transition-all duration-300 border border-red-500/30 hover:border-red-500/50"
+                  disabled={loading || paying || quoting}
                 >
                   <Trash2 className="w-5 h-5" />
                   <span className="font-medium">Vaciar Carrito</span>
                 </button>
 
+                {/* Pagar DESHABILITADO hasta que exista quote y NIT válido */}
                 <button
                   className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={handlePago}
-                  disabled={paying || loading || !cartItems.length}
+                  disabled={paying || loading || quoting || !cartItems.length || !quote || !isNitValid(nit)}
+                  title={
+                    !quote
+                      ? "Calcula el envío para habilitar el pago"
+                      : !isNitValid(nit)
+                      ? "Ingrese un NIT válido (o CF)"
+                      : "Proceder al Pago"
+                  }
                 >
-                  {paying ? "Redirigiendo a Stripe..." : "Proceder al Pago"}
+                  {paying
+                    ? "Redirigiendo a Stripe..."
+                    : quote
+                    ? `Pagar Q${totalConEnvio}`
+                    : "Proceder al Pago"}
                 </button>
 
-                <button 
+                <button
                   onClick={handleCalcularEnvio}
-                  className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  disabled={loading || paying}
+                  className="flex-1 px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={loading || paying || quoting}
                 >
-                  Calcular envio
+                  {quoting ? "Calculando..." : "Calcular envío"}
                 </button>
               </div>
-              
+
+              {/* --- Resultado + NIT --- */}
+              {quote && (
+                <div className="mt-6 p-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10">
+                  <div className="flex items-baseline justify-between">
+                    <h4 className="text-xl font-semibold text-emerald-300">Envío estimado</h4>
+                    <div className="text-right">
+                      <p className="text-slate-400 text-sm">
+                        Distancia: {Number(quote.distancia_km).toFixed(2)} km
+                      </p>
+                      <p className="text-3xl font-bold text-emerald-300">
+                        Q{Number(quote.total_envio).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-3 mt-3 text-slate-300 text-sm">
+                    <div>
+                      Recargo por distancia:{" "}
+                      <span className="font-semibold">Q{Number(quote.recargo_distancia_total).toFixed(2)}</span>
+                    </div>
+                    <div>
+                      Costo base único:{" "}
+                      <span className="font-semibold">Q{Number(quote.costo_base_envio_unico).toFixed(2)}</span>
+                    </div>
+                    <div>
+                      Descuento aplicado:{" "}
+                      <span className="font-semibold">
+                        {quote.descuento_por_envio_pct
+                          ? `${(Number(quote.descuento_por_envio_pct) * 100).toFixed(0)}%`
+                          : "0%"}{" "}
+                        (Q{Number(quote.descuento_por_envio_total).toFixed(2)})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Desglose por ítem */}
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-slate-200">Ver desglose por artículo</summary>
+                    <div className="mt-3 space-y-2">
+                      {Array.isArray(quote.detalle) &&
+                        quote.detalle.map((d, i) => (
+                          <div key={i} className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/60">
+                            <div className="flex items-center justify-between">
+                              <div className="text-slate-200 font-medium">
+                                {d.item?.nombre || `Item ${i + 1}`} × {d.item?.cantidad ?? 1}
+                              </div>
+                              <div className="text-slate-100 font-semibold">
+                                Q{Number(d?.costos?.total_item ?? 0).toFixed(2)}
+                              </div>
+                            </div>
+                            <div className="text-slate-400 text-xs mt-1">
+                              Peso real: {Number(d?.pesos?.real_kg ?? 0).toFixed(2)} kg • Volumétrico:{" "}
+                              {Number(d?.pesos?.volumetrico_kg ?? 0).toFixed(2)} kg • Tarifable:{" "}
+                              {Number(d?.pesos?.tarifable_kg ?? 0).toFixed(2)} kg
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </details>
+
+                  {/* NIT (aparece tras cotizar) */}
+                  <div className="mt-5">
+                    <label className="block text-slate-200 text-sm font-medium mb-2">
+                      NIT para la factura (ingrese <span className="font-semibold">CF</span> si no desea facturar)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="CF o NIT — p. ej., 1234567-8"
+                      value={nit}
+                      onChange={(e) => handleNitChange(e.target.value)}
+                      className={`w-full md:max-w-md px-4 py-2 rounded-lg bg-slate-800 text-white border ${
+                        nitError ? "border-red-400" : "border-slate-600"
+                      } focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent`}
+                    />
+                    {nitError && <p className="mt-1 text-sm text-red-400">{nitError}</p>}
+                  </div>
+
+                  {/* Total general */}
+                  <div className="mt-4 text-right">
+                    <div className="text-slate-300">Total productos: Q{totalProductos.toFixed(2)}</div>
+                    <div className="text-xl font-bold text-slate-100">
+                      Total a pagar aprox.: Q{totalConEnvio}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
     </div>
-  )
+  );
 }

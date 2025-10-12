@@ -31,6 +31,7 @@ import ColorCrudForm from "./pages/product-service/ColorForm.jsx";
 import PublicWishlist from "./pages/PublicWishlistPage.jsx";
 import PaymentSuccess from "./pages/checkout/paymentSuccess.jsx";
 import PaymentCancel from "./pages/checkout/paymentCancel.jsx"; 
+import EnviosManager from "./pages/envio-service/EnvioForm.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (
@@ -144,6 +145,18 @@ function AppRoutes(){
                     <ProtectedRoute>
                     {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
                         <CrearProductoForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/envio"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r==='empleado') ? (
+                        <EnviosManager />
                     ) : (
                         <UnauthorizedPage />
                     )}

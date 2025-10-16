@@ -59,6 +59,23 @@ const mapEP = (ep) => ({
   __editing: false,
 });
 
+// ✅ Extrae array de productos sin importar si viene en data, productos o items
+const extractEPItems = (resp) => {
+  if (!resp) return [];
+  const candidates = [
+    resp.productos,
+    resp.data,
+    resp.items,
+    resp?.data?.items,
+    resp?.data?.productos,
+  ];
+  for (const c of candidates) if (Array.isArray(c)) return c;
+  // En algunos casos, la API puede devolver { data: { ... } } con el array dentro de data.* distinto
+  // Si nada aplica, intenta detectar un único item suelto
+  if (resp && typeof resp === "object" && resp.id_producto) return [resp];
+  return [];
+};
+
 const fmtDT = (s) => (s ? new Date(s).toLocaleString() : "—");
 
 export default function EnviosManager() {
@@ -130,7 +147,7 @@ export default function EnviosManager() {
     try {
       const rp = await getEnvioProductosByEnvioId(idEnvio);
       if (rp?.success) {
-        const items = Array.isArray(rp.data) ? rp.data : (rp.data?.items ?? []);
+        const items = extractEPItems(rp);
         const norm = items.map(mapEP);
         setDrafts((prev) => {
           if (!prev[numero_guia]) return prev;
@@ -174,10 +191,13 @@ export default function EnviosManager() {
     // Cargar productos del envío (normalizados)
     let envioProductos = [];
     try {
-      if (idEnvio != null) {
+      // Si el row ya trae productos desde getEnvios(), úsalos
+      if (Array.isArray(row.productos) && row.productos.length) {
+        envioProductos = row.productos.map(mapEP);
+      } else if (idEnvio != null) {
         const rp = await getEnvioProductosByEnvioId(idEnvio);
         if (rp?.success) {
-          const raw = Array.isArray(rp.data) ? rp.data : (rp.data?.items ?? []);
+          const raw = extractEPItems(rp);
           envioProductos = raw.map(mapEP);
         } else {
           console.error("Error al cargar productos:", rp?.error);

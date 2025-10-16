@@ -164,6 +164,19 @@ function AppRoutes(){
                 }
             />
             <Route
+                path="/envio/tarifas"
+                element={
+                    <ProtectedRoute>
+                    {user?.rol?.some(r => r === 'admin' || r === 'empleado') ? (
+                        <TarifaEnvioForm />
+                    ) : (
+                        <UnauthorizedPage />
+                    )}
+                    </ProtectedRoute>
+                }
+            />  
+
+            <Route
                 path="/carrito"
                 element={
                     <ProtectedRoute>

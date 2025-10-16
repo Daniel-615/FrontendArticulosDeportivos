@@ -1,8 +1,15 @@
+
 import axios from "axios";
 const API_GATEWAY = import.meta.env.VITE_API_GATEWAY;
 
-export const pay = async ({ userId, nit, items }) => {
-  console.log(userId, nit, items)
+export const pay = async ({
+  userId,
+  nit,
+  items,
+  direccion_destino,  
+  costo_envio,         
+  fecha_estimada,      
+}) => {
   if (!userId) throw new Error("Falta userId.");
   if (!nit) throw new Error("Falta NIT (use CF si no desea facturar).");
   if (!Array.isArray(items) || items.length === 0) {
@@ -11,9 +18,25 @@ export const pay = async ({ userId, nit, items }) => {
 
   const base = API_GATEWAY?.endsWith("/") ? API_GATEWAY.slice(0, -1) : API_GATEWAY;
 
+  console.log("[pay] payload =>", {
+    userId,
+    nit,
+    items_len: items.length,
+    direccion_destino,
+    costo_envio,
+    fecha_estimada,
+  });
+
   const { data } = await axios.post(
     `${base}/stripe/checkout`,
-    { userId, nit, items },      
+    {
+      userId,
+      nit,
+      items,
+      direccion_destino,
+      costo_envio,
+      fecha_estimada,
+    },
     { withCredentials: true }
   );
 

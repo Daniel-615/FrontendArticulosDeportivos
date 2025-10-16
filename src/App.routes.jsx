@@ -32,6 +32,7 @@ import PublicWishlist from "./pages/PublicWishlistPage.jsx";
 import PaymentSuccess from "./pages/checkout/paymentSuccess.jsx";
 import PaymentCancel from "./pages/checkout/paymentCancel.jsx"; 
 import EnviosManager from "./pages/envio-service/EnvioForm.jsx";
+import TarifaEnvioForm from "./pages/envio-service/tarifaEnvioForm.jsx";
 function AppRoutes(){
     const {isAuthenticated,user}= useAuth();
     return (

@@ -110,12 +110,11 @@ export default function CartPage() {
     }
   };
 
-
   useEffect(() => {
     setQuote(null);
   }, [coords.destination]);
 
-
+  // ====== CORREGIDO: ahora enviamos direccion_destino, costo_envio y fecha_estimada a Stripe ======
   const handlePago = async () => {
     try {
       setError(null);
@@ -132,6 +131,10 @@ export default function CartPage() {
         setError("Primero calcula el envío para continuar con el pago.");
         return;
       }
+      if (!coords?.destination) {
+        setError("Selecciona un destino en el mapa antes de pagar.");
+        return;
+      }
       if (!isNitValid(nit)) {
         setError("Debes ingresar un NIT válido (o CF).");
         return;
@@ -139,34 +142,46 @@ export default function CartPage() {
 
       setPaying(true);
 
-
       const items = cartItems.map((ci) => ({
         name: ci.producto?.productoColor?.producto?.nombre || "Producto",
         price: Number(ci.producto?.productoColor?.producto?.precio || 0),
         quantity: Number(ci.cantidad || 1),
         producto_talla_id: Number(ci.producto_talla_color_id || 0),
+        // opcional: producto_id si lo tienes disponible
+        // producto_id: Number(ci.producto?.productoColor?.producto?.id || 0),
       }));
 
+      // Enviamos envío como item informativo (tu backend ya lo soporta)
       items.push({
         name: "Envío",
         price: Number(quote.total_envio || 0),
         quantity: 1,
-
       });
+
+      // Dirección basada en las coordenadas seleccionadas
+      const direccion_destino = `${coords.destination.lat.toFixed(5)}, ${coords.destination.lng.toFixed(5)}`;
+      // Costo de envío tomado de la cotización
+      const costo_envio = Number(quote.total_envio || 0);
+      // Fecha estimada por defecto (+3 días, formato YYYY-MM-DD)
+      const fecha_estimada = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
 
       await pay({
         userId: user.id,
         nit: String(nit).trim().toUpperCase(),
         items,
+        direccion_destino,
+        costo_envio,
+        fecha_estimada,
       });
-
     } catch (e) {
       console.error(e);
       setError(e?.message || "No se pudo iniciar el pago.");
       setPaying(false);
     }
   };
-
+  // ====== /CORREGIDO ======
 
   function mapCartToShippingItems(list) {
     return list.map((ci) => {
@@ -453,10 +468,12 @@ export default function CartPage() {
                 <button
                   className="flex-1 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={handlePago}
-                  disabled={paying || loading || quoting || !cartItems.length || !quote || !isNitValid(nit)}
+                  disabled={paying || loading || quoting || !cartItems.length || !quote || !isNitValid(nit) || !coords.destination}
                   title={
                     !quote
                       ? "Calcula el envío para habilitar el pago"
+                      : !coords.destination
+                      ? "Selecciona un destino en el mapa"
                       : !isNitValid(nit)
                       ? "Ingrese un NIT válido (o CF)"
                       : "Proceder al Pago"

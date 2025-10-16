@@ -190,7 +190,7 @@ export default function CartPage() {
     }
   };
 
-  // === NUEVO: armar y enviar metadata real a Stripe ===
+  // === Pagar: armar y enviar metadata real a backend/Stripe ===
   const handlePago = async () => {
     try {
       setError(null);
@@ -218,17 +218,27 @@ export default function CartPage() {
 
       setPaying(true);
 
-      // Items de productos
-      const items = cartItems.map((ci) => ({
-        name: ci.producto?.productoColor?.producto?.nombre || "Producto",
-        price: Number(ci.producto?.productoColor?.producto?.precio || 0),
-        quantity: Number(ci.cantidad || 1),
-        producto_talla_id: Number(ci.producto_talla_color_id || 0),
-        // Si tienes el id del producto base, puedes pasarlo:
-        // producto_id: Number(ci.producto?.productoColor?.producto?.id || 0),
-      }));
+      // Items de productos (¡con producto_id!)
+      const items = cartItems.map((item) => {
+        const baseProduct = item.producto?.productoColor?.producto ?? {};
+        return {
+          name: baseProduct?.nombre || "Producto",
+          price: Number(baseProduct?.precio || 0),
+          quantity: Number(item.cantidad || 1),
+          producto_talla_id: Number(item.producto_talla_color_id || 0),
 
-      // Item de envío (solo visual para Stripe)
+          // ✅ Determina el id del producto base con varios fallbacks
+          producto_id: Number(
+            baseProduct?.id ??
+              item.producto?.id ??
+              item.producto?.producto_id ??
+              item.producto?.productoColor?.producto_id ??
+              0
+          ),
+        };
+      });
+
+      // Item visual de envío para Stripe
       items.push({
         name: "Envío",
         price: Number(quote.total_envio || 0),
@@ -383,7 +393,10 @@ export default function CartPage() {
                           min="1"
                           value={item.cantidad}
                           onChange={(e) =>
-                            handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))
+                            handleUpdate(
+                              item.producto_talla_color_id,
+                              Number.parseInt(e.target.value)
+                            )
                           }
                           className="w-16 px-3 py-2 text-center rounded-lg bg-slate-600 text-white border border-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                         />

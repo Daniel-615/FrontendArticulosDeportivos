@@ -1,101 +1,136 @@
-import { useForm } from 'react-hook-form';
-import { useState } from 'react';
-import { LoginGoogleRequest } from '../../../api-gateway/auth.js';
-import { useNavigate, Link } from 'react-router-dom';
-import { FcGoogle } from 'react-icons/fc';
-import { useAuth } from '../../../context/AuthContext.jsx';
+"use client"
+
+import { useForm } from "react-hook-form"
+import { useState } from "react"
+import { LoginGoogleRequest } from "../../../api-gateway/auth.js"
+import { useNavigate, Link } from "react-router-dom"
+import { FcGoogle } from "react-icons/fc"
+import { useAuth } from "../../../context/AuthContext.jsx"
 
 function LoginPage() {
-  const { register, handleSubmit, reset } = useForm();
-  const [serverMessage, setServerMessage] = useState(null);
-  const { signin } = useAuth();
-  const [success, setSuccess] = useState(null);
-  const navigate = useNavigate();
+  const { register, handleSubmit, reset } = useForm()
+  const [serverMessage, setServerMessage] = useState(null)
+  const { signin } = useAuth()
+  const [success, setSuccess] = useState(null)
+  const navigate = useNavigate()
 
   const onSubmit = async (values) => {
-    const response = await signin(values);
+    const response = await signin(values)
 
     if (response.success) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      setServerMessage(null);
-      reset();
+      localStorage.setItem("user", JSON.stringify(response.data.user))
+      setServerMessage(null)
+      reset()
       setTimeout(() => {
-        navigate('/');
-      }, 1000);
+        navigate("/")
+      }, 1000)
     } else {
       const message =
-        typeof response.message === 'string'
+        typeof response.message === "string"
           ? response.message
-          : typeof response.error === 'string'
-          ? response.error
-          : 'Error desconocido.';
-      setServerMessage(message);
-      setSuccess(null);
+          : typeof response.error === "string"
+            ? response.error
+            : "Error desconocido."
+      setServerMessage(message)
+      setSuccess(null)
     }
-  };
+  }
 
   const handleGoogleLogin = () => {
-    LoginGoogleRequest();
-  };
+    LoginGoogleRequest()
+  }
 
   return (
-    <div className="bg-zinc-800 max-w-md p-10 rounded-md">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input
-          type="email"
-          {...register('email', { required: true })}
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
-          placeholder="Correo electrónico"
+    <div className="min-h-screen bg-black flex">
+      {/* Left side - Image */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        <img
+          src="inter.jpeg"
+          alt="Athletic sports"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <input
-          type="password"
-          {...register('password', { required: true })}
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-md mb-2"
-          placeholder="Contraseña"
-        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+        <div className="absolute bottom-12 left-12 text-white">
+          <h2 className="text-4xl font-black mb-2 tracking-tight">IMPOSSIBLE IS NOTHING</h2>
+          <p className="text-white/80 text-lg tracking-wide">Tu rendimiento comienza aquí</p>
+        </div>
+      </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Iniciar Sesión
-        </button>
+      {/* Right side - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-5xl font-black text-white mb-2 tracking-tight">FITZONE</h1>
+            <p className="text-white/60 text-sm tracking-wider uppercase">Inicia sesión</p>
+          </div>
 
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mt-4 flex items-center justify-center gap-2"
-        >
-          <FcGoogle className="text-2xl" />
-          Iniciar sesión con Google
-        </button>
+          <div className="bg-white/10 backdrop-blur-sm p-8 border border-white/20">
+            {serverMessage && (
+              <div className="bg-red-500/20 border border-red-500/50 p-3 text-white mb-4 text-center text-sm">
+                {serverMessage}
+              </div>
+            )}
 
-        {typeof serverMessage === 'string' && (
-          <p className="text-red-400 text-sm mt-4 text-center">{serverMessage}</p>
-        )}
+            {success && (
+              <div className="bg-green-500/20 border border-green-500/50 p-3 text-white mb-4 text-center text-sm">
+                {success}
+              </div>
+            )}
 
-        {success && (
-          <p className="text-green-400 text-sm mt-4 text-center">{success}</p>
-        )}
-      </form>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <input
+                  type="email"
+                  {...register("email", { required: true })}
+                  className="w-full bg-white/5 border border-white/20 text-white px-4 py-3 focus:outline-none focus:border-white/40 transition-colors placeholder:text-white/40"
+                  placeholder="CORREO ELECTRÓNICO"
+                />
+              </div>
 
-      {/* Enlaces adicionales */}
-      <div className="text-center mt-6 text-sm text-gray-300">
-        <p>
-          ¿No tienes una cuenta?{' '}
-          <Link to="/register" className="text-blue-400 hover:underline">
-            Regístrate aquí
-          </Link>
-        </p>
-        <p className="mt-2">
-          ¿Olvidaste tu contraseña?{' '}
-          <Link to="/forgot-password" className="text-blue-400 hover:underline">
-            Recuperarla
-          </Link>
-        </p>
+              <div>
+                <input
+                  type="password"
+                  {...register("password", { required: true })}
+                  className="w-full bg-white/5 border border-white/20 text-white px-4 py-3 focus:outline-none focus:border-white/40 transition-colors placeholder:text-white/40"
+                  placeholder="CONTRASEÑA"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-white text-black px-4 py-3 font-bold hover:bg-white/90 transition-colors tracking-wide"
+              >
+                INICIAR SESIÓN
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full bg-white/5 border border-white/20 text-white px-4 py-3 hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium"
+              >
+                <FcGoogle className="text-xl" />
+                Continuar con Google
+              </button>
+
+              <div className="text-center pt-4 space-y-2">
+                <p className="text-white/60 text-sm">
+                  ¿No tienes una cuenta?{" "}
+                  <Link to="/register" className="text-white hover:underline font-medium">
+                    Regístrate
+                  </Link>
+                </p>
+                <p className="text-white/60 text-sm">
+                  <Link to="/forgot-password" className="text-white/60 hover:text-white transition-colors">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default LoginPage;
+export default LoginPage

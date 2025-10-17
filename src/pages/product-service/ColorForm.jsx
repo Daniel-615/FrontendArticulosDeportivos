@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { motion, AnimatePresence } from "framer-motion";
-import { postColor, getColorId, getColores, putColor } from "../../api-gateway/color.crud";
-import namer from "color-namer";
-import SidebarEmpleado from "../../components/sideBar.jsx";
+"use client"
+
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { Edit2 } from "lucide-react"
+import { postColor, getColorId, getColores, putColor } from "../../api-gateway/color.crud"
+import namer from "color-namer"
+import SidebarEmpleado from "../../components/sideBar.jsx"
+
 export default function ColorCrudForm() {
-  const [colores, setColores] = useState([]);
-  const [editando, setEditando] = useState(null);
-  const [nombreManual, setNombreManual] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [colores, setColores] = useState([])
+  const [editando, setEditando] = useState(null)
+  const [nombreManual, setNombreManual] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const {
     register,
@@ -17,160 +20,147 @@ export default function ColorCrudForm() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm();
+  } = useForm()
 
-  const codigoHex = watch("codigoHex");
-  const nombre = watch("nombre");
+  const codigoHex = watch("codigoHex")
+  const nombre = watch("nombre")
 
   useEffect(() => {
-    cargarColores();
-  }, []);
+    cargarColores()
+  }, [])
 
   useEffect(() => {
     if (codigoHex && !nombreManual) {
-      const nombres = namer(codigoHex);
-      const nombreColor = nombres.ntc[0].name;
-      setValue("nombre", nombreColor);
+      const nombres = namer(codigoHex)
+      const nombreColor = nombres.ntc[0].name
+      setValue("nombre", nombreColor)
     }
-  }, [codigoHex, nombreManual, setValue]);
+  }, [codigoHex, nombreManual, setValue])
 
   const cargarColores = async () => {
-    const response = await getColores();
-    if (response.success) setColores(response.data);
-    else alert(response.error);
-  };
+    const response = await getColores()
+    if (response.success) setColores(response.data)
+    else alert(response.error)
+  }
 
   const onSubmit = async (data) => {
-    let response;
-    if (editando) response = await putColor(editando, data);
-    else response = await postColor(data);
+    let response
+    if (editando) response = await putColor(editando, data)
+    else response = await postColor(data)
 
     if (response.success) {
-      reset();
-      setEditando(null);
-      setNombreManual(false);
-      cargarColores();
+      reset()
+      setEditando(null)
+      setNombreManual(false)
+      cargarColores()
     } else {
-      alert(response.error || "No se pudo guardar el color");
+      alert(response.error || "No se pudo guardar el color")
     }
-  };
+  }
 
   const editarColor = async (id) => {
-    const response = await getColorId(id);
+    const response = await getColorId(id)
     if (response.success) {
-      setEditando(id);
-      setValue("nombre", response.data.nombre);
-      setValue("codigoHex", response.data.codigoHex || "#000000");
-      setNombreManual(false);
+      setEditando(id)
+      setValue("nombre", response.data.nombre)
+      setValue("codigoHex", response.data.codigoHex || "#000000")
+      setNombreManual(false)
     } else {
-      alert(response.error);
+      alert(response.error)
     }
-  };
+  }
 
   const cancelarEdicion = () => {
-    reset();
-    setEditando(null);
-    setNombreManual(false);
-  };
+    reset()
+    setEditando(null)
+    setNombreManual(false)
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-white">
       <SidebarEmpleado />
-      {/* Main content */}
+
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-white shadow-md p-4 flex items-center justify-between">
-          <button
-            className="md:hidden text-gray-700"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            ☰
-          </button>
-          <h1 className="text-xl font-bold text-gray-800">Gestión de Colores</h1>
-        </header>
+        <main className="p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-black uppercase tracking-tight mb-2">GESTIÓN DE COLORES</h2>
+              <div className="h-1 w-20 bg-black"></div>
+            </div>
 
-        {/* Content */}
-        <main className="p-6">
-          <div className="max-w-lg mx-auto">
-            <h2 className="text-xl font-bold mb-4 text-black">
-              {editando ? "Editar Color" : "Agregar Color"}
-            </h2>
+            <div className="bg-black text-white p-6 mb-10">
+              <h3 className="text-xl font-bold uppercase mb-4">{editando ? "Editar Color" : "Agregar Color"}</h3>
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="bg-white shadow p-4 rounded space-y-4"
-            >
-              <div>
-                <label className="block mb-1 font-medium text-black">Nombre del color</label>
-                <input
-                  {...register("nombre", { required: "El nombre es obligatorio" })}
-                  className="border p-2 w-full rounded text-black"
-                  placeholder="Ej: Rojo"
-                  onChange={() => setNombreManual(true)}
-                />
-                {errors.nombre && (
-                  <p className="text-red-500 text-sm">{errors.nombre.message}</p>
-                )}
-              </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div>
+                  <label className="block mb-2 font-bold uppercase text-sm">Nombre del color</label>
+                  <input
+                    {...register("nombre", { required: "El nombre es obligatorio" })}
+                    className="w-full px-4 py-3 bg-white text-black border-2 border-white focus:outline-none uppercase"
+                    placeholder="EJ: ROJO"
+                    onChange={() => setNombreManual(true)}
+                  />
+                  {errors.nombre && <p className="text-red-400 text-sm font-medium mt-1">{errors.nombre.message}</p>}
+                </div>
 
-              <div>
-                <label className="block mb-1 font-medium text-black" >Código HEX</label>
-                <input
-                  type="color"
-                  {...register("codigoHex")}
-                  className="border p-1 w-16 h-10 rounded"
-                />
-              </div>
+                <div>
+                  <label className="block mb-2 font-bold uppercase text-sm">Código HEX</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="color"
+                      {...register("codigoHex")}
+                      className="w-20 h-12 border-2 border-white cursor-pointer"
+                    />
+                    <span className="text-white font-mono">{codigoHex || "#000000"}</span>
+                  </div>
+                </div>
 
-              <div className="flex space-x-2">
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  {editando ? "Actualizar" : "Guardar"}
-                </button>
-                {editando && (
+                <div className="flex gap-4 pt-2">
                   <button
-                    type="button"
-                    onClick={cancelarEdicion}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    type="submit"
+                    className="flex-1 bg-white text-black py-3 font-bold uppercase hover:bg-gray-200 transition-colors"
                   >
-                    Cancelar
+                    {editando ? "Actualizar" : "Guardar"}
                   </button>
-                )}
-              </div>
-            </form>
+                  {editando && (
+                    <button
+                      type="button"
+                      onClick={cancelarEdicion}
+                      className="flex-1 bg-gray-700 text-white py-3 font-bold uppercase hover:bg-gray-600 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
 
-            <h3 className="text-lg font-bold mt-6 mb-2">Lista de Colores</h3>
-            <AnimatePresence>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {colores.map((color) => (
-                <motion.div
+                <div
                   key={color.id}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 30 }}
-                  className="flex justify-between items-center bg-gray-100 p-2 mb-2 rounded"
+                  className="bg-white border-2 border-black p-6 hover:border-gray-600 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="w-6 h-6 rounded-full border"
-                      style={{ backgroundColor: color.codigoHex }}
-                    ></span>
-                    <span className="text-black">{color.nombre}</span>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 border-2 border-black" style={{ backgroundColor: color.codigoHex }}></div>
+                    <div>
+                      <h4 className="font-bold uppercase text-lg text-black">{color.nombre}</h4>
+                      <p className="text-sm text-gray-600 font-mono">{color.codigoHex}</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => editarColor(color.id)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                    className="w-full bg-black text-white py-2 font-bold uppercase text-sm hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
                   >
+                    <Edit2 className="w-4 h-4" />
                     Editar
                   </button>
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
+            </div>
           </div>
         </main>
       </div>
     </div>
-  );
+  )
 }

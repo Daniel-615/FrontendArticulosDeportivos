@@ -1,60 +1,49 @@
-
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
+import { XCircle, ArrowLeft, ShoppingBag } from "lucide-react"
 
 export default function PaymentCancel() {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-950 to-zinc-900 text-white">
-      {/* Fondos decorativos */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-red-500/10 blur-3xl" />
-        <div className="absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-orange-500/10 blur-3xl" />
-      </div>
-
-      <main className="relative mx-auto flex max-w-lg flex-col items-center px-6 py-16 text-center">
-        {/* Icono cancelación */}
-        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 ring-1 ring-red-400/40">
-          <svg
-            className="h-8 w-8 text-red-400"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-lg text-center">
+        <div className="w-20 h-20 bg-red-500/20 border border-red-500/50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <XCircle className="w-10 h-10 text-red-400" />
         </div>
 
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Pago cancelado
-        </h1>
-        <p className="mt-2 max-w-prose text-white/70">
-          La transacción no fue completada. Si fue un error, puedes intentarlo de nuevo.
+        <h1 className="text-5xl font-black text-white mb-4 tracking-tight">PAGO CANCELADO</h1>
+        <p className="text-white/60 text-lg mb-8 max-w-md mx-auto">
+          La transacción no fue completada. Si fue un error, puedes intentarlo de nuevo desde tu carrito.
         </p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Link
             to="/carrito"
-            className="inline-flex flex-1 items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-white/40 md:flex-none"
+            className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-3 font-bold hover:bg-white/90 transition-colors"
           >
-            Volver al carrito
+            <ShoppingBag className="w-5 h-5" />
+            VOLVER AL CARRITO
           </Link>
           <Link
             to="/producto"
-            className="inline-flex flex-1 items-center justify-center rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/40 md:flex-none"
+            className="inline-flex items-center justify-center gap-2 bg-white/10 border border-white/20 text-white px-6 py-3 font-bold hover:bg-white/20 transition-colors"
           >
-            Explorar productos
+            EXPLORAR PRODUCTOS
           </Link>
         </div>
 
-        {/* Nota */}
-        <p className="mt-6 text-xs text-white/50">
-          Consejo: Si el cargo fue iniciado en tu banco, verifica con soporte antes de volver a intentarlo.
-        </p>
-      </main>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          VOLVER AL INICIO
+        </Link>
+
+        <div className="mt-12 p-4 bg-white/5 border border-white/10 rounded-lg">
+          <p className="text-white/50 text-xs">
+            Si el cargo fue iniciado en tu banco, verifica con soporte antes de volver a intentarlo.
+          </p>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

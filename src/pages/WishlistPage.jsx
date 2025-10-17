@@ -1,16 +1,18 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import {
   getWishlistByUser,
   removeFromWishlist,
   clearWishlist,
-  createOrRefreshWishlistShare,   
-  revokeWishlistShare             
+  createOrRefreshWishlistShare,
+  revokeWishlistShare,
 } from "../api-gateway/wishlist.crud.js"
 import { useAuth } from "../context/AuthContext.jsx"
-import { Heart, Trash2, ShoppingBag, Star, ArrowRight, Share2, Copy, RefreshCw, ShieldX } from "lucide-react" // 👈 NUEVOS ICONOS
-import { useNavigate } from "react-router-dom";
-import { addToCart } from "../api-gateway/carrito.crud.js";
-import { toast } from "react-toastify";
+import { Heart, Trash2, ShoppingBag, Share2, Copy, RefreshCw, ShieldX } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { addToCart } from "../api-gateway/carrito.crud.js"
+import { toast } from "react-toastify"
 
 export default function WishlistPage() {
   const { user } = useAuth()
@@ -22,7 +24,7 @@ export default function WishlistPage() {
   const [sharing, setSharing] = useState(false)
   const [revoking, setRevoking] = useState(false)
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const loadWishlist = async () => {
     setLoading(true)
@@ -54,32 +56,30 @@ export default function WishlistPage() {
 
   const handleMoveToCart = async (ptc) => {
     if (!user?.id) {
-      toast.error("Debes iniciar sesión para mover el producto al carrito.");
-      return;
+      toast.error("Debes iniciar sesión para mover el producto al carrito.")
+      return
     }
     try {
       const response = await addToCart({
         user_id: user.id,
         producto_talla_color_id: ptc.id,
         cantidad: 1,
-      });
+      })
       if (response.success) {
-        toast.success("Producto movido al carrito.");
-        await handleRemove(ptc.id);
+        toast.success("Producto movido al carrito.")
+        await handleRemove(ptc.id)
       } else {
-        toast.error(response.error || "No se pudo mover al carrito.");
+        toast.error(response.error || "No se pudo mover al carrito.")
       }
     } catch (err) {
-      toast.error("Error inesperado al mover al carrito.");
+      toast.error("Error inesperado al mover al carrito.")
     }
-  };
-
-  // =================== COMPARTIR WISHLIST ===================
+  }
 
   const handleCreateOrRefreshShare = async (opts = { expiresInHours: 72, forceRefresh: false }) => {
     if (!user?.id) {
-      toast.error("Debes iniciar sesión.");
-      return;
+      toast.error("Debes iniciar sesión.")
+      return
     }
     try {
       setSharing(true)
@@ -116,7 +116,7 @@ export default function WishlistPage() {
   const handleRevokeShare = async () => {
     if (!user?.id) {
       toast.error("Debes iniciar sesión.")
-      return;
+      return
     }
     try {
       setRevoking(true)
@@ -133,13 +133,10 @@ export default function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      <div className="min-h-screen bg-black">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400/30 border-t-blue-400"></div>
-              <div className="absolute inset-0 animate-pulse rounded-full h-16 w-16 bg-transparent border-4 border-transparent border-t-white/20"></div>
-            </div>
+            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
           </div>
         </div>
       </div>
@@ -147,48 +144,26 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
-      {/* FONDO */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-4 mb-6">
-            <div className="relative">
-              <div className="p-4 bg-gradient-to-r from-pink-500 via-red-500 to-orange-500 rounded-2xl shadow-2xl">
-                <Heart className="w-10 h-10 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Star className="w-3 h-3 text-yellow-800 fill-current" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-5xl font-black bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent mb-2">
-                Mi Lista de Deseos
-              </h1>
-              <div className="h-1 w-32 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full mx-auto"></div>
-            </div>
+    <div className="min-h-screen bg-black">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-10 pt-8">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Heart className="w-10 h-10 text-white" />
+            <h1 className="text-5xl font-black text-white tracking-tight">WISHLIST</h1>
           </div>
-          <p className="text-blue-100/80 text-xl max-w-3xl mx-auto leading-relaxed">
-            Tus productos deportivos favoritos en un solo lugar. Mantén el control de lo que más deseas.
-          </p>
+          <p className="text-white/60 text-sm tracking-wider uppercase">Tus productos favoritos</p>
         </div>
 
-        {/* ====== BLOQUE COMPARTIR ====== */}
         {user && (
-          <div className="bg-white/10 border border-white/10 backdrop-blur-xl rounded-2xl p-5 mb-10 shadow-2xl">
+          <div className="bg-white/10 border border-white/20 p-5 mb-10">
             <div className="flex flex-col md:flex-row gap-4 md:items-center">
               <button
                 onClick={() => handleCreateOrRefreshShare({ expiresInHours: 72, forceRefresh: false })}
                 disabled={sharing}
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-4 py-3 font-bold bg-white text-black hover:bg-white/90 transition-colors disabled:opacity-60 uppercase tracking-wide"
               >
                 <Share2 className="w-5 h-5" />
-                {sharing ? "Generando…" : "Compartir wishlist"}
+                {sharing ? "Generando..." : "Compartir"}
               </button>
 
               <div className="flex-1 flex gap-2">
@@ -196,71 +171,57 @@ export default function WishlistPage() {
                   type="text"
                   readOnly
                   value={shareLink}
-                  placeholder="Genera el enlace para compartir…"
-                  className="flex-1 px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-blue-100/50"
+                  placeholder="Genera el enlace para compartir..."
+                  className="flex-1 px-3 py-3 bg-white/5 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-white/40"
                 />
                 <button
                   onClick={handleCopyShareLink}
-                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-3 bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/20 font-medium uppercase"
                 >
-                  <Copy className="w-5 h-5" /> Copiar
+                  <Copy className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleCreateOrRefreshShare({ expiresInHours: 72, forceRefresh: true })}
-                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-3 bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/20 font-medium uppercase"
                   title="Rotar enlace"
                 >
-                  <RefreshCw className="w-5 h-5" /> Refrescar
+                  <RefreshCw className="w-5 h-5" />
                 </button>
                 <button
                   onClick={handleRevokeShare}
                   disabled={revoking}
-                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl font-semibold bg-rose-600/80 text-white hover:bg-rose-600 transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-4 py-3 bg-red-500/20 text-white hover:bg-red-500/30 transition-colors border border-red-500/50 disabled:opacity-60 font-medium uppercase"
                 >
                   <ShieldX className="w-5 h-5" />
-                  {revoking ? "Revocando…" : "Revocar"}
                 </button>
               </div>
             </div>
-            <p className="text-blue-100/70 text-sm mt-3">
-              El enlace es <span className="font-semibold">público y de solo lectura</span>. Puedes revocarlo en cualquier momento.
-            </p>
+            <p className="text-white/60 text-xs mt-3 uppercase tracking-wide">Enlace público de solo lectura</p>
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-500/20 border border-red-400/30 rounded-2xl p-6 mb-8 backdrop-blur-sm">
-            <p className="text-red-200 font-semibold text-center">{error}</p>
-          </div>
-        )}
+        {error && <div className="bg-red-500/20 border border-red-500/50 p-4 mb-8 text-white text-center">{error}</div>}
 
         {wishlist.length === 0 ? (
           <div className="text-center py-20">
-            <div className="relative inline-block mb-8">
-              <div className="w-32 h-32 bg-gradient-to-br from-gray-700 to-gray-800 rounded-3xl flex items-center justify-center shadow-2xl">
-                <Heart className="w-16 h-16 text-gray-400" />
+            <div className="mb-8">
+              <div className="mx-auto w-32 h-32 bg-white/10 border border-white/20 flex items-center justify-center mb-6">
+                <Heart className="w-16 h-16 text-white/40" />
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-bounce">
-                <span className="text-white text-xs font-bold">0</span>
-              </div>
+              <h3 className="text-3xl font-black text-white mb-4 tracking-tight">WISHLIST VACÍA</h3>
+              <p className="text-white/60 mb-8 uppercase text-sm tracking-wide">Guarda tus productos favoritos</p>
+              <button
+                className="px-8 py-4 bg-white text-black font-bold hover:bg-white/90 transition-colors tracking-wide uppercase"
+                onClick={() => navigate("/producto/")}
+              >
+                Explorar Productos
+              </button>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-4">Tu lista de deseos está vacía</h3>
-            <p className="text-blue-100/70 mb-10 max-w-lg mx-auto text-lg leading-relaxed">
-              Descubre nuestra increíble colección deportiva y guarda tus productos favoritos para no perderlos de vista
-            </p>
-            <button 
-              className="group inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-blue-500/25"
-              onClick={() => navigate("/producto/")}
-            >
-              <ShoppingBag className="w-6 h-6" />
-              Explorar Productos
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-            </button>
           </div>
         ) : (
           <>
-            <div className="space-y-8">
-              {wishlist.map((item, index) => {
+            <div className="space-y-6">
+              {wishlist.map((item) => {
                 const ptc = item.producto
                 if (!ptc) return null
 
@@ -271,64 +232,46 @@ export default function WishlistPage() {
                 return (
                   <div
                     key={ptc.id}
-                    className="group bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-blue-500/20 transition-all duration-700 overflow-hidden border border-white/10 hover:border-blue-400/30 transform hover:-translate-y-2"
-                    style={{ animationDelay: `${index * 100}ms` }}
+                    className="bg-white/10 border border-white/20 hover:bg-white/[0.15] transition-colors overflow-hidden"
                   >
                     <div className="flex flex-col lg:flex-row">
-                      <div className="lg:w-80 h-80 lg:h-64 relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                      <div className="lg:w-80 h-80 lg:h-64 relative overflow-hidden bg-white/5">
                         {ptc.productoColor?.imagenUrl ? (
                           <img
                             src={ptc.productoColor.imagenUrl || "/placeholder.svg"}
                             alt={producto?.nombre}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                            <ShoppingBag className="w-20 h-20 text-gray-400" />
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ShoppingBag className="w-20 h-20 text-white/20" />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                            <Heart className="w-5 h-5 text-white fill-current" />
-                          </div>
-                        </div>
                       </div>
 
-                      <div className="flex-1 p-8 lg:p-10">
-                        <div className="flex justify-between items-start mb-6">
-                          <div className="flex-1">
-                            <h2 className="text-3xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors duration-300">
-                              {producto?.nombre}
-                            </h2>
-                            <div className="flex items-center gap-3 mb-4">
-                              <span className="text-4xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                                Q{producto?.precio}
-                              </span>
-                              <div className="px-3 py-1 bg-green-500/20 rounded-full">
-                                <span className="text-green-300 text-sm font-semibold">En Stock</span>
-                              </div>
-                            </div>
+                      <div className="flex-1 p-8">
+                        <div className="mb-6">
+                          <h2 className="text-3xl font-black text-white mb-3 tracking-tight">{producto?.nombre}</h2>
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className="text-3xl font-black text-white">Q{producto?.precio}</span>
+                            <span className="px-3 py-1 bg-white/10 border border-white/20 text-white text-xs font-bold uppercase tracking-wide">
+                              En Stock
+                            </span>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-6 mb-8">
+                        <div className="flex flex-wrap gap-6 mb-8 text-sm">
                           {color && (
                             <div className="flex items-center gap-3">
-                              <span className="text-blue-200 font-semibold">Color:</span>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-8 h-8 rounded-full border-3 border-white shadow-lg ring-2 ring-blue-400/30"
-                                  style={{ backgroundColor: color }}
-                                />
-                              </div>
+                              <span className="text-white/60 font-medium uppercase tracking-wide">Color:</span>
+                              <div className="w-8 h-8 border-2 border-white/40" style={{ backgroundColor: color }} />
                             </div>
                           )}
 
                           {talla && (
                             <div className="flex items-center gap-3">
-                              <span className="text-blue-200 font-semibold">Talla:</span>
-                              <span className="px-4 py-2 bg-blue-500/20 rounded-xl text-white font-bold border border-blue-400/30">
+                              <span className="text-white/60 font-medium uppercase tracking-wide">Talla:</span>
+                              <span className="px-4 py-2 bg-white/10 border border-white/20 text-white font-bold uppercase">
                                 {talla}
                               </span>
                             </div>
@@ -338,20 +281,20 @@ export default function WishlistPage() {
                         <div className="flex flex-wrap gap-4">
                           <button
                             onClick={() => handleRemove(ptc.id)}
-                            className="group/btn inline-flex items-center gap-3 bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-8 py-4 rounded-2xl font-bold hover:from-red-600 hover:via-pink-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-red-500/25"
+                            className="inline-flex items-center gap-2 bg-red-500/20 text-white px-6 py-3 font-bold hover:bg-red-500/30 transition-colors border border-red-500/50 uppercase tracking-wide"
                           >
-                            <Trash2 className="w-5 h-5 group-hover/btn:rotate-12 transition-transform duration-300" />
+                            <Trash2 className="w-5 h-5" />
                             Eliminar
                           </button>
 
                           <button
                             onClick={() => handleMoveToCart(ptc)}
-                            className="group/btn inline-flex items-center gap-3 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white px-8 py-4 rounded-2xl font-bold hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-green-500/25"
+                            className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 font-bold hover:bg-white/90 transition-colors uppercase tracking-wide"
                           >
-                            🛒 Mover al carrito
+                            <ShoppingBag className="w-5 h-5" />
+                            Mover al Carrito
                           </button>
                         </div>
-
                       </div>
                     </div>
                   </div>
@@ -359,12 +302,12 @@ export default function WishlistPage() {
               })}
             </div>
 
-            <div className="text-center mt-16">
+            <div className="text-center mt-12">
               <button
                 onClick={handleClear}
-                className="group inline-flex items-center gap-3 bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:from-gray-800 hover:via-gray-900 hover:to-black transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-gray-500/25 border border-gray-600/30"
+                className="inline-flex items-center gap-3 bg-white/5 text-white px-8 py-4 font-bold hover:bg-white/10 transition-colors border border-white/20 uppercase tracking-wide"
               >
-                <Trash2 className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
+                <Trash2 className="w-6 h-6" />
                 Vaciar Lista Completa
               </button>
             </div>

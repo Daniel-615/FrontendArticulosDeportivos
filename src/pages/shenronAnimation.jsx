@@ -3,8 +3,161 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
+const DragonRadar = ({ onDetectionComplete }) => {
+  const [detectedBalls, setDetectedBalls] = useState([])
+  const [scanAngle, setScanAngle] = useState(0)
+  const hasStartedRef = useRef(false) // Prevent duplicate detection in React StrictMode
+
+  const radarBlips = [
+    { angle: 30, distance: 60, stars: 1 },
+    { angle: 80, distance: 75, stars: 2 },
+    { angle: 140, distance: 45, stars: 3 },
+    { angle: 190, distance: 80, stars: 4 },
+    { angle: 230, distance: 50, stars: 5 },
+    { angle: 280, distance: 70, stars: 6 },
+    { angle: 330, distance: 55, stars: 7 },
+  ]
+
+  useEffect(() => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
+
+    radarBlips.forEach((blip, index) => {
+      setTimeout(() => {
+        setDetectedBalls((prev) => [...prev, blip])
+      }, index * 400)
+    })
+
+    setTimeout(
+      () => {
+        onDetectionComplete(radarBlips)
+      },
+      radarBlips.length * 400 + 800,
+    )
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScanAngle((prev) => (prev + 3) % 360)
+    }, 30)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <motion.div
+      className="relative w-80 h-80 bg-gradient-to-br from-green-700 via-green-800 to-green-950 rounded-full border-8 border-gray-300 shadow-2xl shadow-green-500/50"
+      initial={{ scale: 0, rotate: -180 }}
+      animate={{ scale: 1, rotate: 0 }}
+      exit={{ scale: 0, opacity: 0 }}
+      transition={{ duration: 1, type: "spring" }}
+    >
+      <div className="absolute inset-0 rounded-full overflow-hidden">
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={`v-${i}`}
+            className="absolute top-0 bottom-0 w-px bg-gray-400/40"
+            style={{
+              left: `${(i + 1) * 11.11}%`,
+            }}
+          />
+        ))}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={`h-${i}`}
+            className="absolute left-0 right-0 h-px bg-gray-400/40"
+            style={{
+              top: `${(i + 1) * 11.11}%`,
+            }}
+          />
+        ))}
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={`circle-${i}`}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-gray-400/30 rounded-full"
+            style={{
+              width: `${i * 25}%`,
+              height: `${i * 25}%`,
+            }}
+          />
+        ))}
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-300/50" />
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300/50" />
+      </div>
+
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <motion.div
+          className="w-3 h-3 bg-red-600 rounded-full"
+          style={{ filter: "drop-shadow(0 0 6px rgba(220, 38, 38, 1))" }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [1, 0.7, 1],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Number.POSITIVE_INFINITY,
+          }}
+        />
+      </div>
+
+      <motion.div
+        className="absolute top-1/2 left-1/2 w-full h-1 origin-left"
+        style={{
+          background: "linear-gradient(to right, rgba(34, 197, 94, 0.9), transparent)",
+          transform: `translate(-50%, -50%) rotate(${scanAngle}deg)`,
+        }}
+      />
+
+      {detectedBalls.map((blip, index) => {
+        const x = Math.cos((blip.angle * Math.PI) / 180) * blip.distance
+        const y = Math.sin((blip.angle * Math.PI) / 180) * blip.distance
+
+        return (
+          <motion.div
+            key={index}
+            className="absolute top-1/2 left-1/2"
+            style={{
+              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{
+              scale: [0, 1.5, 1],
+              opacity: [0, 1, 1],
+            }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              className="w-4 h-4 bg-red-600 rounded-full shadow-lg shadow-red-600/80"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [1, 0.7, 1],
+              }}
+              transition={{
+                duration: 1,
+                repeat: Number.POSITIVE_INFINITY,
+              }}
+            />
+          </motion.div>
+        )
+      })}
+
+      <div
+        className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-green-400 font-black uppercase tracking-widest text-sm"
+        style={{
+          textShadow:
+            "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 10px rgba(34, 197, 94, 0.5)",
+        }}
+      >
+        Dragon Radar
+      </div>
+      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 text-gray-300 text-xs font-bold">
+        {detectedBalls.length}/7 Detectadas
+      </div>
+    </motion.div>
+  )
+}
+
 // Componente para crear las esferas del dragón
-const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionComplete }) => {
+const DragonBall = ({ stars, index, ballsColliding, ballsRising, collisionComplete, fromDirection }) => {
   // Posiciones de las estrellas para cada esfera
   const getStarPositions = (numStars) => {
     const positions = []
@@ -52,38 +205,57 @@ const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionCo
 
   const starPositions = getStarPositions(stars)
 
-  // Calcular posición de colisión (todas van al centro)
-  const getCollisionPosition = () => {
-    return { x: 0, y: 0 }
+  const getInitialPosition = () => {
+    const directions = [
+      { x: 0, y: -800 }, // top
+      { x: 800, y: -600 }, // top-right
+      { x: 800, y: 0 }, // right
+      { x: 800, y: 600 }, // bottom-right
+      { x: 0, y: 800 }, // bottom
+      { x: -800, y: 600 }, // bottom-left
+      { x: -800, y: 0 }, // left
+    ]
+    return directions[index] || { x: 0, y: -800 }
   }
 
-  const collisionPos = getCollisionPosition()
+  const getCircularPosition = () => {
+    const spacing = 120 // Espaciado entre esferas
+    const totalWidth = spacing * 6 // Ancho total para 7 esferas (6 espacios)
+    const startX = -totalWidth / 2 // Comenzar desde la izquierda del centro
+    return {
+      x: startX + index * spacing,
+      y: 0, // Todas en la misma línea horizontal
+    }
+  }
+
+  const initialPos = getInitialPosition()
+  const circularPos = getCircularPosition()
 
   return (
     <motion.div
       initial={{
         opacity: 0,
-        scale: 0,
-        y: -100,
-        rotateY: 180,
+        scale: 0.3,
+        x: initialPos.x,
+        y: initialPos.y,
+        rotate: 0, // CHANGED: Removed random rotation for smoother initial appearance
       }}
       animate={
-        ballsScattering
+        ballsRising
           ? {
-              opacity: 0,
-              scale: 0.5,
-              x: (Math.random() - 0.5) * 1000,
-              y: (Math.random() - 0.5) * 1000,
-              rotate: Math.random() * 720,
+              opacity: 1,
+              scale: 1.1,
+              x: circularPos.x,
+              y: circularPos.y - 180,
+              rotate: 720, // CHANGED: Increased rotation for rising effect
             }
           : ballsColliding
             ? {
                 opacity: 1,
-                scale: [1, 1.2, 0.8],
-                x: collisionPos.x,
-                y: collisionPos.y,
-                rotate: [0, 180, 360],
-                filter: ["brightness(1)", "brightness(3)", "brightness(1)"],
+                scale: 1,
+                x: circularPos.x,
+                y: circularPos.y,
+                rotate: 360 + index * 45, // CHANGED: Added rotation per index for collision
               }
             : collisionComplete
               ? {
@@ -93,51 +265,50 @@ const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionCo
               : {
                   opacity: 1,
                   scale: 1,
-                  y: 0,
-                  rotateY: 0,
+                  x: circularPos.x,
+                  y: circularPos.y,
+                  rotate: 1080 + index * 90, // CHANGED: Increased rotation for final positioning
                 }
       }
       transition={
-        ballsScattering
+        ballsRising
           ? {
-              duration: 2,
-              delay: index * 0.1,
-              ease: "easeOut",
+              duration: 2.5, // CHANGED: Adjusted duration for smoother rising
+              delay: 0,
+              ease: [0.22, 1, 0.36, 1], // CHANGED: Smoother easing
             }
           : ballsColliding
             ? {
-                duration: 1.5,
-                delay: index * 0.05,
-                ease: "easeInOut",
+                duration: 2.2, // CHANGED: Adjusted duration for collision
+                delay: index * 0.12, // CHANGED: Slightly adjusted delay
+                ease: [0.16, 1, 0.3, 1], // CHANGED: Smoother easing
               }
             : collisionComplete
               ? {
-                  duration: 0.3,
+                  duration: 0.4,
                   delay: 0,
+                  ease: "easeIn",
                 }
               : {
-                  delay: index * 0.4,
-                  duration: 0.8,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 15,
+                  delay: index * 0.18, // CHANGED: Slightly adjusted delay
+                  duration: 2.5, // CHANGED: Adjusted duration for initial appearance
+                  ease: [0.34, 1.56, 0.64, 1], // CHANGED: Smoother easing
                 }
       }
       className="relative group"
     >
-      {/* Glow effect */}
       <motion.div
-        className="absolute inset-0 rounded-full bg-orange-400 blur-xl opacity-60"
+        className="absolute inset-0 rounded-full bg-orange-400 blur-2xl"
         animate={
-          ballsScattering
+          ballsRising
             ? {
-                opacity: 0,
-                scale: 2,
+                opacity: [0.8, 1, 0.8],
+                scale: [1.8, 2.5, 1.8], // CHANGED: Larger scale for rising
               }
             : ballsColliding
               ? {
-                  opacity: [0.6, 1, 0],
-                  scale: [1, 3, 5],
+                  opacity: [0.7, 1, 0.9],
+                  scale: [1.2, 3, 2.5], // CHANGED: Larger scale for collision
                 }
               : collisionComplete
                 ? {
@@ -145,32 +316,51 @@ const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionCo
                     scale: 0,
                   }
                 : {
-                    scale: [1, 1.2, 1],
-                    opacity: [0.6, 0.8, 0.6],
+                    scale: [1.2, 1.6, 1.2], // CHANGED: Slightly larger scale for initial appearance
+                    opacity: [0.7, 1, 0.7],
                   }
         }
         transition={
-          ballsScattering
+          ballsRising
             ? {
-                duration: 1.5,
-                delay: index * 0.1,
+                duration: 1.2, // CHANGED: Adjusted duration for rising aura
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
               }
             : ballsColliding
               ? {
-                  duration: 1.5,
-                  delay: index * 0.05,
+                  duration: 1.8, // CHANGED: Adjusted duration for collision aura
+                  delay: index * 0.1,
+                  ease: "easeOut",
                 }
               : collisionComplete
                 ? {
-                    duration: 0.3,
+                    duration: 0.4,
                   }
                 : {
-                    duration: 2,
+                    duration: 1.8, // CHANGED: Adjusted duration for initial aura
                     repeat: Number.POSITIVE_INFINITY,
                     delay: index * 0.2,
+                    ease: "easeInOut",
                   }
         }
       />
+
+      {(ballsColliding || !collisionComplete) && (
+        <motion.div
+          className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 via-yellow-400 to-transparent blur-xl"
+          animate={{
+            opacity: [0, 0.6, 0],
+            scale: [0.8, 1.5, 2], // CHANGED: Scale up for energy trail
+            x: [-20, 0, 20], // CHANGED: Add horizontal movement for trail
+          }}
+          transition={{
+            duration: 0.8,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeOut",
+          }}
+        />
+      )}
 
       {/* Dragon Ball SVG */}
       <div className="relative w-20 h-20">
@@ -230,19 +420,18 @@ const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionCo
           {/* Additional shine effect */}
           <circle cx="40" cy="40" r="38" fill="none" stroke="url(#ballGradient0)" strokeWidth="1" opacity="0.3" />
         </svg>
-        {/* Animated glow ring */}
         <motion.div
           className="absolute inset-0 rounded-full border-2 border-orange-300"
           animate={
-            ballsScattering
+            ballsRising
               ? {
-                  opacity: 0,
-                  scale: 2,
+                  opacity: [0, 1, 0],
+                  scale: [1, 1.4, 1.6], // CHANGED: Increased scale for rising ring
                 }
               : ballsColliding
                 ? {
-                    opacity: [0, 1, 0],
-                    scale: [1, 2, 3],
+                    opacity: [0, 1, 0.8],
+                    scale: [1, 1.6, 1.3], // CHANGED: Increased scale for colliding ring
                   }
                 : collisionComplete
                   ? {
@@ -250,28 +439,32 @@ const DragonBall = ({ stars, index, ballsScattering, ballsColliding, collisionCo
                       scale: 0,
                     }
                   : {
-                      opacity: [0, 0.8, 0],
-                      scale: [1, 1.1, 1],
+                      opacity: [0, 0.9, 0],
+                      scale: [1, 1.3, 1], // CHANGED: Scale for initial ring
                     }
           }
           transition={
-            ballsScattering
+            ballsRising
               ? {
-                  duration: 1,
+                  duration: 1.2, // CHANGED: Adjusted duration for rising ring
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
                 }
               : ballsColliding
                 ? {
-                    duration: 1.5,
-                    delay: index * 0.05,
+                    duration: 1.5, // CHANGED: Adjusted duration for colliding ring
+                    delay: index * 0.1,
+                    ease: "easeOut",
                   }
                 : collisionComplete
                   ? {
-                      duration: 0.3,
+                      duration: 0.4,
                     }
                   : {
-                      duration: 1.5,
+                      duration: 1.5, // CHANGED: Adjusted duration for initial ring
                       repeat: Number.POSITIVE_INFINITY,
                       delay: index * 0.3,
+                      ease: "easeInOut",
                     }
           }
         />
@@ -286,7 +479,10 @@ function ShenronAnimation() {
   const waitTimeRef = useRef(null)
   const finalVozRef = useRef(null)
   const [started, setStarted] = useState(false)
+  const [showRadar, setShowRadar] = useState(false)
+  const [radarComplete, setRadarComplete] = useState(false)
   const [ballsColliding, setBallsColliding] = useState(false)
+  const [ballsRising, setBallsRising] = useState(false) // Reset ballsRising
   const [collisionComplete, setCollisionComplete] = useState(false)
   const [showLightBurst, setShowLightBurst] = useState(false)
   const [showShenron, setShowShenron] = useState(false)
@@ -297,6 +493,9 @@ function ShenronAnimation() {
   const [wishGranted, setWishGranted] = useState(false)
   const [shenronDisappearing, setShenronDisappearing] = useState(false)
   const [ballsScattering, setBallsScattering] = useState(false)
+  const [radarBallPositions, setRadarBallPositions] = useState([])
+  // Estado para el oscurecimiento del cielo
+  const [showDarkening, setShowDarkening] = useState(false)
 
   // Opciones de deseos predefinidas
   const wishOptions = [
@@ -375,18 +574,29 @@ function ShenronAnimation() {
 
   const startSummoning = () => {
     setStarted(true)
+    setShowRadar(true)
+  }
 
-    // Secuencia de colisión de las esferas
-    setTimeout(() => setBallsColliding(true), 1000)
+  const handleRadarComplete = (radarBlips) => {
+    setRadarBallPositions(radarBlips)
+    setRadarComplete(true)
+    setShowRadar(false)
+
+    setTimeout(() => setBallsColliding(true), 1500) // Las esferas vuelan hacia el círculo
+    setTimeout(() => setShowDarkening(true), 2800) // El cielo comienza a oscurecerse
+    setTimeout(() => {
+      setBallsColliding(false)
+      setBallsRising(true) // Se elevan juntas
+    }, 4200)
     setTimeout(() => {
       setCollisionComplete(true)
       setShowLightBurst(true)
-    }, 2500)
-    setTimeout(() => setShowLightBurst(false), 3500)
-    setTimeout(() => setShowLightning(true), 3000)
-    setTimeout(() => setShowParticles(true), 3500)
-    setTimeout(() => setShowShenron(true), 4000)
-    setTimeout(() => setShowWishForm(true), 7000)
+    }, 6200)
+    setTimeout(() => setShowLightBurst(false), 7200)
+    setTimeout(() => setShowLightning(true), 6700)
+    setTimeout(() => setShowParticles(true), 7200)
+    setTimeout(() => setShowShenron(true), 7700)
+    setTimeout(() => setShowWishForm(true), 10700)
   }
 
   const grantWish = () => {
@@ -424,7 +634,10 @@ function ShenronAnimation() {
   const resetAnimation = () => {
     stopAllAudios()
     setStarted(false)
+    setShowRadar(false)
+    setRadarComplete(false)
     setBallsColliding(false)
+    setBallsRising(false) // Reset ballsRising
     setCollisionComplete(false)
     setShowLightBurst(false)
     setShowShenron(false)
@@ -435,6 +648,7 @@ function ShenronAnimation() {
     setWishGranted(false)
     setShenronDisappearing(false)
     setBallsScattering(false)
+    setShowDarkening(false) // Reset darkening
   }
 
   const selectedWishData = wishOptions.find((wish) => wish.id === selectedWish)
@@ -449,15 +663,103 @@ function ShenronAnimation() {
   }))
 
   return (
-    <div className="bg-gradient-to-b from-black via-gray-900 to-black min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background atmospheric effects */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-green-900/10 to-transparent opacity-50" />
+    <div className="bg-gradient-to-b from-black via-orange-950/30 to-black min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0">
+        {[...Array(100)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.7 + 0.3,
+            }}
+            animate={{
+              opacity: [0.3, 1, 0.3],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: Math.random() * 3 + 2,
+              repeat: Number.POSITIVE_INFINITY,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-orange-950/20 to-black opacity-80" />
+
+      <AnimatePresence>
+        {showDarkening && !shenronDisappearing && (
+          <>
+            {/* Overlay oscuro principal */}
+            <motion.div
+              className="fixed inset-0 bg-black z-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.85 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2, ease: "easeInOut" }}
+            />
+            {/* Nubes oscuras animadas */}
+            <motion.div
+              className="fixed inset-0 z-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2 }}
+            >
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-full h-32 bg-gradient-to-b from-gray-900/60 to-transparent blur-xl"
+                  style={{
+                    top: `${i * 15}%`,
+                  }}
+                  animate={{
+                    x: ["-100%", "100%"],
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{
+                    duration: 8 + i * 2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "linear",
+                  }}
+                />
+              ))}
+            </motion.div>
+            {/* Viento de energía */}
+            <motion.div
+              className="fixed inset-0 z-5"
+              animate={{
+                background: [
+                  "radial-gradient(circle at 20% 50%, rgba(249, 115, 22, 0.1) 0%, transparent 50%)",
+                  "radial-gradient(circle at 80% 50%, rgba(249, 115, 22, 0.1) 0%, transparent 50%)",
+                  "radial-gradient(circle at 20% 50%, rgba(249, 115, 22, 0.1) 0%, transparent 50%)",
+                ],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+            />
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Audio elements */}
       <audio ref={audioRef} src="/summing_shenron.mp3" preload="auto" />
       <audio ref={pedirDeseoRef} src="/pedir_deseo.mp3" preload="auto" />
       <audio ref={waitTimeRef} src="/wait_time.mp3" preload="auto" />
       <audio ref={finalVozRef} src="/final_voz.mp3" preload="auto" />
+
+      <AnimatePresence>
+        {showRadar && (
+          <div className="relative z-20">
+            <DragonRadar onDetectionComplete={handleRadarComplete} />
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Light Burst Effect */}
       <AnimatePresence>
@@ -470,7 +772,7 @@ function ShenronAnimation() {
           >
             {/* Central explosion */}
             <motion.div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white rounded-full"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-orange-400 rounded-full"
               initial={{ scale: 0, opacity: 1 }}
               animate={{ scale: 50, opacity: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
@@ -480,7 +782,7 @@ function ShenronAnimation() {
             {[...Array(12)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute top-1/2 left-1/2 origin-left w-screen h-2 bg-gradient-to-r from-yellow-300 via-orange-400 to-transparent"
+                className="absolute top-1/2 left-1/2 origin-left w-screen h-2 bg-gradient-to-r from-orange-400 via-yellow-400 to-transparent"
                 style={{
                   transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
                 }}
@@ -492,7 +794,7 @@ function ShenronAnimation() {
 
             {/* Screen flash */}
             <motion.div
-              className="absolute inset-0 bg-yellow-200"
+              className="absolute inset-0 bg-orange-200"
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 0.8, 0] }}
               transition={{ duration: 0.5 }}
@@ -508,7 +810,7 @@ function ShenronAnimation() {
             {[...Array(5)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute inset-0 bg-gradient-to-b from-yellow-400/20 via-transparent to-transparent"
+                className="absolute inset-0 bg-gradient-to-b from-orange-400/20 via-transparent to-transparent"
                 initial={{ opacity: 0 }}
                 animate={{
                   opacity: [0, 1, 0, 1, 0],
@@ -532,7 +834,7 @@ function ShenronAnimation() {
           particles.map((particle) => (
             <motion.div
               key={particle.id}
-              className="absolute w-2 h-2 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50"
+              className="absolute w-2 h-2 bg-orange-400 rounded-full shadow-lg shadow-orange-400/50"
               style={{
                 left: `${particle.x}%`,
                 top: `${particle.y}%`,
@@ -558,59 +860,25 @@ function ShenronAnimation() {
           ))}
       </AnimatePresence>
 
-      {/* Enhanced Summon button */}
       {!started && (
         <motion.div
-          className="mb-10 relative"
+          className="mb-10 relative z-10"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          {/* Button glow background */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-2xl blur-xl opacity-60"
-            animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.6, 0.8, 0.6],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Number.POSITIVE_INFINITY,
-            }}
-          />
-
-          {/* Floating orbs around button */}
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50"
-              style={{
-                left: `${20 + i * 12}%`,
-                top: `${Math.sin(i) * 20 + 50}%`,
-              }}
-              animate={{
-                y: [0, -20, 0],
-                opacity: [0.5, 1, 0.5],
-                scale: [0.8, 1.2, 0.8],
-              }}
-              transition={{
-                duration: 2,
-                delay: i * 0.3,
-                repeat: Number.POSITIVE_INFINITY,
-              }}
-            />
-          ))}
-
           <motion.button
             onClick={startSummoning}
-            className="relative px-12 py-6 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:via-orange-400 hover:to-red-400 text-black font-bold rounded-2xl shadow-2xl shadow-orange-500/40 transition-all transform border-4 border-yellow-300 overflow-hidden"
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 0 50px rgba(251, 191, 36, 0.8)",
+            className="relative px-16 py-6 bg-gradient-to-b from-orange-500 to-orange-600 text-white font-black uppercase text-2xl tracking-widest border-4 border-orange-400 hover:from-orange-400 hover:to-orange-500 transition-all duration-300 shadow-2xl"
+            style={{
+              textShadow:
+                "3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(251, 146, 60, 0.8)",
+              boxShadow: "0 0 30px rgba(251, 146, 60, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.1)",
             }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {/* Animated background shine */}
+            <span className="relative z-10">Invocar a Shenron</span>
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
               animate={{
@@ -622,49 +890,14 @@ function ShenronAnimation() {
                 repeatDelay: 1,
               }}
             />
-
-            {/* Button content */}
-            <div className="relative flex items-center gap-3">
-              <motion.span
-                className="text-3xl"
-                animate={{
-                  rotate: [0, 360],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "linear",
-                }}
-              >
-                🔮
-              </motion.span>
-              <span className="text-2xl font-extrabold bg-gradient-to-r from-gray-900 to-black bg-clip-text text-transparent drop-shadow-lg">
-                Invocar a Shenron
-              </span>
-              <motion.div
-                className="flex gap-1"
-                animate={{
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Number.POSITIVE_INFINITY,
-                }}
-              >
-                <span className="text-xl">⚡</span>
-                <span className="text-xl">✨</span>
-              </motion.div>
-            </div>
-
-            {/* Pulsing border effect */}
             <motion.div
-              className="absolute inset-0 border-4 border-yellow-200 rounded-2xl"
+              className="absolute inset-0 border-4 border-orange-300"
               animate={{
-                opacity: [0, 1, 0],
-                scale: [1, 1.02, 1],
+                scale: [1, 1.1, 1],
+                opacity: [0.5, 0, 0.5],
               }}
               transition={{
-                duration: 1.5,
+                duration: 2,
                 repeat: Number.POSITIVE_INFINITY,
               }}
             />
@@ -672,17 +905,17 @@ function ShenronAnimation() {
         </motion.div>
       )}
 
-      {/* Dragon Balls with collision animation */}
-      {started && (
+      {radarComplete && (
         <div className="flex flex-wrap justify-center gap-6 mb-16 relative z-10">
           {[1, 2, 3, 4, 5, 6, 7].map((stars, i) => (
             <DragonBall
               key={i}
               stars={stars}
               index={i}
-              ballsScattering={ballsScattering}
               ballsColliding={ballsColliding}
+              ballsRising={ballsRising}
               collisionComplete={collisionComplete}
+              fromDirection={true}
             />
           ))}
         </div>
@@ -692,7 +925,7 @@ function ShenronAnimation() {
       <AnimatePresence>
         {showShenron && (
           <motion.div
-            className="relative w-full max-w-4xl"
+            className="relative w-full max-w-4xl z-10"
             exit={
               shenronDisappearing
                 ? {
@@ -713,9 +946,8 @@ function ShenronAnimation() {
                 : {}
             }
           >
-            {/* Dramatic background glow */}
             <motion.div
-              className="absolute inset-0 bg-gradient-radial from-green-500/30 via-green-600/20 to-transparent rounded-3xl blur-3xl"
+              className="absolute inset-0 bg-gradient-radial from-orange-500/30 via-orange-600/20 to-transparent rounded-3xl blur-3xl"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={
                 shenronDisappearing
@@ -743,7 +975,7 @@ function ShenronAnimation() {
             {[...Array(8)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 bg-gradient-to-b from-yellow-300 to-transparent"
+                className="absolute w-1 bg-gradient-to-b from-orange-300 to-transparent"
                 style={{
                   height: "200px",
                   left: `${10 + i * 10}%`,
@@ -816,11 +1048,7 @@ function ShenronAnimation() {
                     }
               }
             >
-              <img
-                src="/shenron.webp"
-                alt="Shenron"
-                className="w-full drop-shadow-2xl rounded-2xl border-4 border-green-400/30"
-              />
+              <img src="/shenron.webp" alt="Shenron" className="w-full drop-shadow-2xl" />
               {/* Glowing eyes effect */}
               <motion.div
                 className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-red-500 rounded-full blur-lg opacity-80"
@@ -847,117 +1075,12 @@ function ShenronAnimation() {
                 }
               />
             </motion.div>
-
-            {/* Energy aura around Shenron */}
-            <motion.div
-              className="absolute inset-0 border-4 border-green-400 rounded-2xl"
-              initial={{ opacity: 0 }}
-              animate={
-                shenronDisappearing
-                  ? {
-                      opacity: 0,
-                      scale: 2,
-                    }
-                  : {
-                      opacity: [0, 0.8, 0],
-                      scale: [1, 1.05, 1],
-                    }
-              }
-              transition={
-                shenronDisappearing
-                  ? {
-                      duration: 1.5,
-                    }
-                  : {
-                      duration: 1.5,
-                      repeat: Number.POSITIVE_INFINITY,
-                      delay: 2,
-                    }
-              }
-            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Wish Form */}
       <AnimatePresence>
         {showWishForm && !wishGranted && (
-          <motion.div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-gradient-to-br from-gray-900 to-black border-4 border-green-400 rounded-2xl p-8 max-w-2xl w-full shadow-2xl shadow-green-400/30"
-              initial={{ scale: 0.5, y: 100 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.5, y: -100 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-              <motion.h2
-                className="text-3xl font-bold text-green-400 text-center mb-8 bg-gradient-to-r from-green-300 to-green-500 bg-clip-text text-transparent"
-                animate={{
-                  textShadow: [
-                    "0 0 20px rgba(34, 197, 94, 0.5)",
-                    "0 0 40px rgba(34, 197, 94, 0.8)",
-                    "0 0 20px rgba(34, 197, 94, 0.5)",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Number.POSITIVE_INFINITY,
-                }}
-              >
-                Elige tu deseo
-              </motion.h2>
-              <div className="space-y-4 mb-8">
-                {wishOptions.map((wish, index) => (
-                  <motion.button
-                    key={wish.id}
-                    onClick={() => setSelectedWish(wish.id)}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      selectedWish === wish.id
-                        ? "border-green-400 bg-green-400/20 text-green-300"
-                        : "border-gray-600 bg-gray-800 text-gray-300 hover:border-green-500 hover:bg-green-500/10"
-                    }`}
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-lg font-medium">{wish.text}</span>
-                  </motion.button>
-                ))}
-              </div>
-              <div className="flex gap-4">
-                <motion.button
-                  onClick={grantWish}
-                  disabled={!selectedWish}
-                  className="flex-1 py-3 px-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold rounded-lg shadow-lg transition-all disabled:cursor-not-allowed"
-                  whileHover={selectedWish ? { scale: 1.05 } : {}}
-                  whileTap={selectedWish ? { scale: 0.95 } : {}}
-                >
-                  ✨ Conceder Deseo
-                </motion.button>
-                <motion.button
-                  onClick={resetAnimation}
-                  className="py-3 px-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  ❌ Cancelar
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Wish Granted Message */}
-      <AnimatePresence>
-        {wishGranted && selectedWishData && (
           <motion.div
             className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
@@ -965,45 +1088,171 @@ function ShenronAnimation() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-gradient-to-br from-yellow-900 to-orange-900 border-4 border-yellow-400 rounded-2xl p-8 max-w-2xl w-full shadow-2xl shadow-yellow-400/30 text-center"
+              className="bg-gradient-to-b from-orange-950 to-black border-8 border-orange-500 p-8 max-w-2xl w-full relative overflow-hidden"
+              style={{
+                boxShadow: "0 0 50px rgba(251, 146, 60, 0.5), inset 0 0 30px rgba(251, 146, 60, 0.1)",
+              }}
+              initial={{ scale: 0.5, y: 100 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.5, y: -100 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10"
+                animate={{
+                  x: ["-100%", "100%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "linear",
+                }}
+              />
+
+              <h2
+                className="text-5xl font-black text-orange-400 text-center mb-8 uppercase tracking-widest relative z-10"
+                style={{
+                  textShadow:
+                    "4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 20px rgba(251, 146, 60, 0.8)",
+                }}
+              >
+                Elige tu deseo
+              </h2>
+              <div className="space-y-3 mb-8 relative z-10">
+                {wishOptions.map((wish, index) => (
+                  <motion.button
+                    key={wish.id}
+                    onClick={() => setSelectedWish(wish.id)}
+                    className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
+                      selectedWish === wish.id
+                        ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
+                        : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
+                    }`}
+                    style={
+                      selectedWish === wish.id
+                        ? {
+                            textShadow: "2px 2px 0 #000, -1px -1px 0 #000",
+                            boxShadow: "0 0 20px rgba(251, 146, 60, 0.5)",
+                          }
+                        : {}
+                    }
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {wish.text}
+                  </motion.button>
+                ))}
+              </div>
+              <div className="flex gap-4 relative z-10">
+                <motion.button
+                  onClick={grantWish}
+                  disabled={!selectedWish}
+                  className="flex-1 py-4 px-6 bg-gradient-to-b from-orange-500 to-orange-600 text-white font-black uppercase tracking-wider disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed hover:from-orange-400 hover:to-orange-500 transition-all border-4 border-orange-400 disabled:border-gray-500"
+                  style={
+                    selectedWish
+                      ? {
+                          textShadow: "2px 2px 0 #000, -1px -1px 0 #000",
+                          boxShadow: "0 0 20px rgba(251, 146, 60, 0.5)",
+                        }
+                      : {}
+                  }
+                  whileHover={selectedWish ? { scale: 1.02 } : {}}
+                  whileTap={selectedWish ? { scale: 0.98 } : {}}
+                >
+                  Conceder Deseo
+                </motion.button>
+                <motion.button
+                  onClick={resetAnimation}
+                  className="py-4 px-6 bg-black text-orange-400 border-4 border-orange-700 font-black uppercase tracking-wider hover:bg-orange-950 hover:border-orange-500 transition-all"
+                  style={{
+                    textShadow: "1px 1px 0 #000",
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Cancelar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {wishGranted && selectedWishData && (
+          <motion.div
+            className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-gradient-to-b from-orange-950 to-black border-8 border-orange-500 p-12 max-w-2xl w-full text-center relative overflow-hidden"
+              style={{
+                boxShadow: "0 0 60px rgba(251, 146, 60, 0.7), inset 0 0 40px rgba(251, 146, 60, 0.2)",
+              }}
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               exit={{ scale: 0, rotate: 180 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
             >
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute top-1/2 left-1/2 w-1 h-full bg-gradient-to-b from-orange-400 via-orange-500 to-transparent origin-top"
+                  style={{
+                    transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
+                  }}
+                  animate={{
+                    opacity: [0.3, 0.7, 0.3],
+                    scaleY: [0.8, 1.2, 0.8],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    delay: i * 0.1,
+                  }}
+                />
+              ))}
+
               <motion.div
-                className="text-6xl mb-6"
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                className="text-6xl mb-6 relative z-10"
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  rotate: { duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" },
+                  scale: { duration: 1, repeat: Number.POSITIVE_INFINITY },
+                }}
               >
                 ✨
               </motion.div>
-              <motion.h2
-                className="text-4xl font-bold text-yellow-400 mb-6"
-                animate={{
-                  textShadow: [
-                    "0 0 20px rgba(251, 191, 36, 0.5)",
-                    "0 0 40px rgba(251, 191, 36, 0.8)",
-                    "0 0 20px rgba(251, 191, 36, 0.5)",
-                  ],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Number.POSITIVE_INFINITY,
+              <h2
+                className="text-6xl font-black text-orange-400 mb-6 uppercase tracking-widest relative z-10"
+                style={{
+                  textShadow:
+                    "5px 5px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 30px rgba(251, 146, 60, 1)",
                 }}
               >
-                ¡Deseo Concedido!
-              </motion.h2>
-              <motion.p
-                className="text-xl text-yellow-200 leading-relaxed"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                Deseo Concedido
+              </h2>
+              <p
+                className="text-xl text-orange-200 leading-relaxed font-bold relative z-10"
+                style={{
+                  textShadow: "2px 2px 0 #000",
+                }}
               >
                 {selectedWishData.response}
-              </motion.p>
+              </p>
               <motion.div
-                className="mt-8 text-sm text-yellow-300"
+                className="mt-8 text-sm text-orange-400 uppercase tracking-widest font-bold relative z-10"
+                style={{
+                  textShadow: "1px 1px 0 #000",
+                }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.5 }}
@@ -1015,33 +1264,25 @@ function ShenronAnimation() {
         )}
       </AnimatePresence>
 
-      {/* Enhanced final text */}
       <AnimatePresence>
         {showShenron && !showWishForm && !wishGranted && (
           <motion.div
-            className="relative mt-12 text-center"
+            className="relative mt-12 text-center z-10"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 4, duration: 1.5 }}
           >
-            <motion.div
-              className="absolute inset-0 bg-green-400 blur-2xl opacity-30 rounded-lg"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-              }}
-            />
             <motion.p
-              className="relative text-green-400 text-3xl md:text-5xl font-bold bg-gradient-to-r from-green-300 to-green-500 bg-clip-text text-transparent drop-shadow-2xl"
+              className="relative text-orange-400 text-5xl md:text-7xl font-black uppercase tracking-widest"
+              style={{
+                textShadow:
+                  "6px 6px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 40px rgba(251, 146, 60, 1), 0 0 80px rgba(251, 146, 60, 0.5)",
+              }}
               animate={{
                 textShadow: [
-                  "0 0 20px rgba(34, 197, 94, 0.5)",
-                  "0 0 40px rgba(34, 197, 94, 0.8)",
-                  "0 0 20px rgba(34, 197, 94, 0.5)",
+                  "6px 6px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 40px rgba(251, 146, 60, 1), 0 0 80px rgba(251, 146, 60, 0.5)",
+                  "6px 6px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 60px rgba(251, 146, 60, 1), 0 0 100px rgba(251, 146, 60, 0.7)",
+                  "6px 6px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 40px rgba(251, 146, 60, 1), 0 0 80px rgba(251, 146, 60, 0.5)",
                 ],
               }}
               transition={{
@@ -1049,46 +1290,42 @@ function ShenronAnimation() {
                 repeat: Number.POSITIVE_INFINITY,
               }}
             >
-              ¡Dime tu deseo!
+              Dime tu deseo
             </motion.p>
-            {/* Sparkle effects around text */}
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 bg-yellow-300 rounded-full"
-                style={{
-                  left: `${20 + i * 12}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0],
-                  rotate: [0, 180, 360],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Number.POSITIVE_INFINITY,
-                  delay: i * 0.3 + 4,
-                }}
-              />
-            ))}
+            <motion.div
+              className="absolute inset-0 -z-10"
+              animate={{
+                boxShadow: [
+                  "0 0 40px rgba(251, 146, 60, 0.3)",
+                  "0 0 80px rgba(251, 146, 60, 0.5)",
+                  "0 0 40px rgba(251, 146, 60, 0.3)",
+                ],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Number.POSITIVE_INFINITY,
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Reset button after everything is done */}
       <AnimatePresence>
         {ballsScattering && (
           <motion.button
             onClick={resetAnimation}
-            className="fixed bottom-8 right-8 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-full shadow-2xl shadow-blue-500/30 transition-all z-50"
+            className="fixed bottom-8 right-8 px-8 py-4 bg-gradient-to-b from-orange-500 to-orange-600 text-white font-black uppercase tracking-widest border-4 border-orange-400 hover:from-orange-400 hover:to-orange-500 transition-all z-50"
+            style={{
+              textShadow: "2px 2px 0 #000, -1px -1px 0 #000",
+              boxShadow: "0 0 30px rgba(251, 146, 60, 0.5)",
+            }}
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 3 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            🔄 Invocar de Nuevo
+            Invocar de Nuevo
           </motion.button>
         )}
       </AnimatePresence>

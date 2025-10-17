@@ -1,12 +1,15 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+"use client"
+
+import { Navigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
+import { LoadingScreen } from "./LoadingScreen"
 
 export const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth()
 
   if (loading) {
-    return <p className="text-white text-center mt-4">Verificando sesión...</p>;
+    return <LoadingScreen message="VERIFICANDO SESIÓN" />
   }
 
-  return user ? children : <Navigate to="/login" replace />;
-};
+  return user ? children : <Navigate to="/login" replace />
+}

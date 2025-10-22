@@ -35,6 +35,7 @@ import PaymentSuccess from "./pages/checkout/paymentSuccess.jsx"
 import PaymentCancel from "./pages/checkout/paymentCancel.jsx"
 import EnviosManager from "./pages/envio-service/EnvioForm.jsx"
 import TarifaEnvioForm from "./pages/envio-service/tarifaEnvioForm.jsx"
+import DashboardForm from "./components/dashboard.jsx"
 
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
@@ -219,199 +220,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/user/deactivateAccount/:id"
+      <Route path="/dashboard"
         element={
           <ProtectedRoute>
-            <h1>desactivar</h1>
+              {user?.rol?.some((r) => r === "admin" || r === "empleado") ? <DashboardForm /> : <UnauthorizedPage />}
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/user/findOne/:id"
-        element={
-          <ProtectedRoute>
-            <h1>buscar usuario por id</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/user/findAll"
-        element={
-          <ProtectedRoute>
-            <h1>findall</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/user/findAllActivos"
-        element={
-          <ProtectedRoute>
-            <h1>Activos</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/user/delete/:id"
-        element={
-          <ProtectedRoute>
-            <h1>eliminar user</h1>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Roles */}
-      <Route
-        path="/rol"
-        element={
-          <ProtectedRoute>
-            <h1>obtener roles</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/add-rol"
-        element={
-          <ProtectedRoute>
-            <h1>añadir rol</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rol/:id"
-        element={
-          <ProtectedRoute>
-            <h1>obtener rol id</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rol/update/:id"
-        element={
-          <ProtectedRoute>
-            <h1>actualizar rol</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rol/delete/:id"
-        element={
-          <ProtectedRoute>
-            <h1>eliminar rol</h1>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Permisos */}
-      <Route
-        path="/permiso"
-        element={
-          <ProtectedRoute>
-            <h1>obtener permisos</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/add-permiso"
-        element={
-          <ProtectedRoute>
-            <h1>añadir permiso</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/permiso/:id"
-        element={
-          <ProtectedRoute>
-            <h1>obtener permiso por id</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/permiso/update/:id"
-        element={
-          <ProtectedRoute>
-            <h1>actualizar permiso</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/permiso/delete/:id"
-        element={
-          <ProtectedRoute>
-            <h1>eliminar permiso</h1>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* RolPermiso */}
-      <Route
-        path="/rol-permiso"
-        element={
-          <ProtectedRoute>
-            <h1>obtener rol por permisos</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/add-rol-permiso"
-        element={
-          <ProtectedRoute>
-            <h1>añadir rol permiso</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rol-permiso/:rolId/:permisoId"
-        element={
-          <ProtectedRoute>
-            <h1>obtener rol permiso por id</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/rol-permiso/delete/:rolId/:permisoId"
-        element={
-          <ProtectedRoute>
-            <h1>eliminar rol permiso</h1>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* UsuarioRol */}
-      <Route
-        path="/usuario-rol"
-        element={
-          <ProtectedRoute>
-            <h1>obtener usuarios rol</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/add-usuario-rol"
-        element={
-          <ProtectedRoute>
-            <h1>añadir usuario rol</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/usuario-rol/:usuarioId/:rolId"
-        element={
-          <ProtectedRoute>
-            <h1>obtener usuario rol por id</h1>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/usuario-rol/delete/:usuarioId/:rolId"
-        element={
-          <ProtectedRoute>
-            <h1>eliminar usuario rol</h1>
-          </ProtectedRoute>
-        }
-      />
-
+      />     
+     
       {/* Shenron */}
       <Route
         path="/shenron"

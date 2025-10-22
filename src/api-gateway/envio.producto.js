@@ -23,10 +23,10 @@ export const createEnvioProducto = async (payload) => {
   }
 };
 
-// Traer TODOS los productos de UN envío (✅ ESTA ES LA QUE NECESITAS)
+
 export const getEnvioProductosByEnvioId = async (id_envio) => {
   try {
-    console.log(id_envio)
+
     const res = await axios.get(
       `${API_GATEWAY}envio_producto/envio/${encodeURIComponent(id_envio)}`,
       { withCredentials: true }
@@ -38,7 +38,7 @@ export const getEnvioProductosByEnvioId = async (id_envio) => {
   }
 };
 
-// (Opcional) Obtener un envio_producto por su ID propio
+
 export const getEnvioProductoById = async (id_envio_producto) => {
   try {
     const res = await axios.get(

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
@@ -16,6 +14,7 @@ import {
   Truck,
   ChevronDown,
   DollarSign,
+  BarChart3, 
 } from "lucide-react"
 
 function Navbar() {
@@ -30,6 +29,7 @@ function Navbar() {
     <nav className="bg-black border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
+          {/* LOGO */}
           <div className="flex items-center space-x-3">
             <NavLink
               to="/"
@@ -48,6 +48,7 @@ function Navbar() {
             </NavLink>
           </div>
 
+          {/* MENÚ */}
           <ul className="flex items-center space-x-1">
             {!isAuthenticated && (
               <>
@@ -80,6 +81,7 @@ function Navbar() {
 
             {isAuthenticated && (
               <>
+                {/* Inicio */}
                 <li>
                   <NavLink
                     to="/"
@@ -95,6 +97,7 @@ function Navbar() {
                   </NavLink>
                 </li>
 
+                {/* ADMIN */}
                 {Array.isArray(user?.rol) && user.rol.includes("admin") && (
                   <>
                     <li>
@@ -123,25 +126,43 @@ function Navbar() {
                         <span>EMPLEADOS</span>
                       </NavLink>
                     </li>
+
+                    {/* 🔹 DASHBOARD */}
+                    <li>
+                      <NavLink
+                        to="/dashboard"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-blue-500/10" : ""
+                          }`
+                        }
+                      >
+                        <BarChart3 size={16} />
+                        <span>DASHBOARD</span>
+                      </NavLink>
+                    </li>
                   </>
                 )}
 
-                {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
-                  <li>
-                    <NavLink
-                      to="/user/profile"
-                      className={({ isActive }) =>
-                        `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                          isActive ? "text-white bg-white/5" : ""
-                        }`
-                      }
-                    >
-                      <User size={16} />
-                      <span>PERFIL</span>
-                    </NavLink>
-                  </li>
-                )}
+                {/* PERFIL */}
+                {Array.isArray(user?.rol) &&
+                  (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                    <li>
+                      <NavLink
+                        to="/user/profile"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <User size={16} />
+                        <span>PERFIL</span>
+                      </NavLink>
+                    </li>
+                  )}
 
+                {/* PRODUCTOS / CARRITO */}
                 {Array.isArray(user?.rol) &&
                   (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
                     <>
@@ -177,7 +198,7 @@ function Navbar() {
                           <ChevronDown size={14} className="ml-1" />
                         </NavLink>
 
-                        {/* Dropdown menu */}
+                        {/* Dropdown */}
                         {openDropdown === "carrito" && (
                           <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                             <NavLink
@@ -197,6 +218,7 @@ function Navbar() {
                     </>
                   )}
 
+                {/* ENVÍOS */}
                 {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
                   <>
                     <li
@@ -217,7 +239,6 @@ function Navbar() {
                         <ChevronDown size={14} className="ml-1" />
                       </NavLink>
 
-                      {/* Dropdown menu */}
                       {openDropdown === "envios" && (
                         <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                           <NavLink
@@ -251,6 +272,7 @@ function Navbar() {
                   </>
                 )}
 
+                {/* SALIR */}
                 <li>
                   <button
                     onClick={handleLogout}

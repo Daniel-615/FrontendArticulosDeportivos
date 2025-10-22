@@ -35,7 +35,7 @@ export default function DashboardForm() {
         </p>
       </div>
 
-      {/* Iframe del Dashboard */}
+      {/* Contenedor del iframe */}
       <div
         style={{
           width: "90%",
@@ -45,17 +45,20 @@ export default function DashboardForm() {
           overflow: "hidden",
           boxShadow: "0 4px 20px rgba(255,255,255,0.1)",
           backgroundColor: "#ffffff",
-          padding: "1rem",
+          padding: "0", // quitar padding para usar todo el espacio
         }}
       >
-        <iframe 
-            title="DashboardApp" 
-            width="600" 
-            height="373.5" 
-            src="https://app.powerbi.com/view?r=eyJrIjoiYjhjYzRkYmUtZmJkYy00OGY4LTg3YWQtYjdlM2IzOWFlODdmIiwidCI6IjVmNTNiNGNlLTYzZDQtNGVlOC04OGQyLTIyZjBiMmQ0YjI3YSIsImMiOjR9" 
-            frameborder="0" 
-            allowFullScreen="true">
-        </iframe>
+        <iframe
+          title="DashboardApp"
+          src="https://app.powerbi.com/view?r=eyJrIjoiYjhjYzRkYmUtZmJkYy00OGY4LTg3YWQtYjdlM2IzOWFlODdmIiwidCI6IjVmNTNiNGNlLTYzZDQtNGVlOC04OGQyLTIyZjBiMmQ0YjI3YSIsImMiOjR9"
+          frameBorder="0"
+          allowFullScreen
+          style={{
+            width: "100%",
+            height: "100%",
+            border: "none",
+          }}
+        ></iframe>
       </div>
     </div>
   )

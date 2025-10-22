@@ -48,18 +48,14 @@ export default function DashboardForm() {
           padding: "1rem",
         }}
       >
-        <iframe
-          title="DashboardApp"
-          width="100%"
-          height="100%"
-          src="https://app.powerbi.com/view?r=eyJrIjoiYjhjYzRkYmUtZmJkYy00OGY4LTg3YWQtYjdlM2IzOWFlODdmIiwidCI6IjVmNTNiNGNlLTYzZDQtNGVlOC04OGQyLTIyZjBiMmQ0YjI3YSIsImMiOjR9"
-          frameBorder="0"
-          allowFullScreen={true}
-          style={{
-            border: "none",
-            borderRadius: "5px",
-          }}
-        />
+        <iframe 
+            title="DashboardApp" 
+            width="600" 
+            height="373.5" 
+            src="https://app.powerbi.com/view?r=eyJrIjoiYjhjYzRkYmUtZmJkYy00OGY4LTg3YWQtYjdlM2IzOWFlODdmIiwidCI6IjVmNTNiNGNlLTYzZDQtNGVlOC04OGQyLTIyZjBiMmQ0YjI3YSIsImMiOjR9" 
+            frameborder="0" 
+            allowFullScreen="true">
+        </iframe>
       </div>
     </div>
   )

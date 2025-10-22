@@ -1,11 +1,26 @@
 "use client"
 
-import { Link } from "react-router-dom"
+import { useState } from "react"
+import { NavLink } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { ShoppingCart, Heart, User, LogOut, Home, Package, Users, Settings, Flame } from "lucide-react"
+import {
+  ShoppingCart,
+  Heart,
+  User,
+  LogOut,
+  Home,
+  Package,
+  Users,
+  Settings,
+  Flame,
+  Truck,
+  ChevronDown,
+  DollarSign,
+} from "lucide-react"
 
 function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
+  const [openDropdown, setOpenDropdown] = useState(null)
 
   const handleLogout = async () => {
     await logout()
@@ -16,142 +31,236 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
-            <Link
+            <NavLink
               to="/"
+              end
               className="text-2xl font-black text-white tracking-tighter hover:text-white/80 transition-colors"
             >
               FITZONE
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/shenron"
               className="flex items-center space-x-1 opacity-0 hover:opacity-100 transition-opacity duration-300 group"
             >
               <Flame size={14} className="text-orange-500 animate-pulse" />
               <span className="text-xs font-bold text-orange-500 tracking-wider">SHENRON</span>
               <Flame size={14} className="text-orange-500 animate-pulse" />
-            </Link>
+            </NavLink>
           </div>
 
           <ul className="flex items-center space-x-1">
-            {isAuthenticated && (
-              <>
-                <li>
-                  <Link
-                    to="/"
-                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                  >
-                    <Home size={16} />
-                    <span>INICIO</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/producto"
-                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                  >
-                    <Package size={16} />
-                    <span>PRODUCTOS</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/carrito"
-                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                  >
-                    <ShoppingCart size={16} />
-                    <span>CARRITO</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/wishlist"
-                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                  >
-                    <Heart size={16} />
-                    <span>WISHLIST</span>
-                  </Link>
-                </li>
-              </>
-            )}
-
             {!isAuthenticated && (
               <>
                 <li>
-                  <Link
+                  <NavLink
                     to="/login"
-                    className="px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
+                    className={({ isActive }) =>
+                      `px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                        isActive ? "text-white bg-white/5" : ""
+                      }`
+                    }
                   >
                     INICIAR SESIÓN
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link
+                  <NavLink
                     to="/register"
-                    className="px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide"
+                    className={({ isActive }) =>
+                      `px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide ${
+                        isActive ? "bg-white/90" : ""
+                      }`
+                    }
                   >
                     REGISTRARSE
-                  </Link>
+                  </NavLink>
                 </li>
               </>
-            )}
-
-            {isAuthenticated && user?.rol?.includes("admin") && (
-              <>
-                <li>
-                  <Link
-                    to="/admin-panel"
-                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                  >
-                    <Settings size={16} />
-                    <span>ADMIN</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/register-employee"
-                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                  >
-                    <Users size={16} />
-                    <span>EMPLEADOS</span>
-                  </Link>
-                </li>
-              </>
-            )}
-
-            {isAuthenticated && (user?.rol?.includes("admin") || user?.rol?.includes("empleado")) && (
-              <li>
-                <Link
-                  to="/empleado-panel"
-                  className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                >
-                  <Users size={16} />
-                  <span>PANEL</span>
-                </Link>
-              </li>
-            )}
-
-            {isAuthenticated && (user?.rol?.includes("cliente") || user?.rol?.includes("admin")) && (
-              <li>
-                <Link
-                  to="/user/profile"
-                  className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
-                >
-                  <User size={16} />
-                  <span>PERFIL</span>
-                </Link>
-              </li>
             )}
 
             {isAuthenticated && (
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-red-500/10 hover:border-red-500/20 transition-colors text-sm font-medium tracking-wide border border-transparent"
-                >
-                  <LogOut size={16} />
-                  <span>SALIR</span>
-                </button>
-              </li>
+              <>
+                <li>
+                  <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) =>
+                      `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                        isActive ? "text-white bg-white/5" : ""
+                      }`
+                    }
+                  >
+                    <Home size={16} />
+                    <span>INICIO</span>
+                  </NavLink>
+                </li>
+
+                {Array.isArray(user?.rol) && user.rol.includes("admin") && (
+                  <>
+                    <li>
+                      <NavLink
+                        to="/admin-panel"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <Settings size={16} />
+                        <span>ADMIN</span>
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/register-employee"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <Users size={16} />
+                        <span>EMPLEADOS</span>
+                      </NavLink>
+                    </li>
+                  </>
+                )}
+
+                {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                  <li>
+                    <NavLink
+                      to="/user/profile"
+                      className={({ isActive }) =>
+                        `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                          isActive ? "text-white bg-white/5" : ""
+                        }`
+                      }
+                    >
+                      <User size={16} />
+                      <span>PERFIL</span>
+                    </NavLink>
+                  </li>
+                )}
+
+                {Array.isArray(user?.rol) &&
+                  (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
+                    <>
+                      <li>
+                        <NavLink
+                          to="/producto"
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Package size={16} />
+                          <span>PRODUCTOS</span>
+                        </NavLink>
+                      </li>
+
+                      <li
+                        className="relative"
+                        onMouseEnter={() => setOpenDropdown("carrito")}
+                        onMouseLeave={() => setOpenDropdown(null)}
+                      >
+                        <NavLink
+                          to="/carrito"
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <ShoppingCart size={16} />
+                          <span>CARRITO</span>
+                          <ChevronDown size={14} className="ml-1" />
+                        </NavLink>
+
+                        {/* Dropdown menu */}
+                        {openDropdown === "carrito" && (
+                          <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                            <NavLink
+                              to="/wishlist"
+                              className={({ isActive }) =>
+                                `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
+                              }
+                            >
+                              <Heart size={16} />
+                              <span>WISHLIST</span>
+                            </NavLink>
+                          </div>
+                        )}
+                      </li>
+                    </>
+                  )}
+
+                {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
+                  <>
+                    <li
+                      className="relative"
+                      onMouseEnter={() => setOpenDropdown("envios")}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <NavLink
+                        to="/envio"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <Truck size={16} />
+                        <span>ENVÍOS</span>
+                        <ChevronDown size={14} className="ml-1" />
+                      </NavLink>
+
+                      {/* Dropdown menu */}
+                      {openDropdown === "envios" && (
+                        <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                          <NavLink
+                            to="/envio/tarifas"
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <DollarSign size={16} />
+                            <span>TARIFAS</span>
+                          </NavLink>
+                        </div>
+                      )}
+                    </li>
+
+                    <li>
+                      <NavLink
+                        to="/empleado-panel"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <Users size={16} />
+                        <span>PANEL</span>
+                      </NavLink>
+                    </li>
+                  </>
+                )}
+
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-red-500/10 hover:border-red-500/20 transition-colors text-sm font-medium tracking-wide border border-transparent"
+                  >
+                    <LogOut size={16} />
+                    <span>SALIR</span>
+                  </button>
+                </li>
+              </>
             )}
           </ul>
         </div>

@@ -7,7 +7,7 @@ import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { calcularEnvioRequest } from "../api-gateway/tarifa.envio.crud.js"
 import { pay } from "../api-gateway/stripe.js"
-import MapDistancePicker from "../components/MapDistancePicker.jsx"
+import MapDistancePicker from "../components/mapDistancePicker.jsx"
 
 const WAREHOUSE_ANTIGUA = {
   name: "Bodega - Antigua Guatemala",

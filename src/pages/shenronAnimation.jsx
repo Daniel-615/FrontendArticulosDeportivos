@@ -1,12 +1,10 @@
-"use client"
-
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-
+import ShenronWishForm from "../components/shenronWishForm"
 const DragonRadar = ({ onDetectionComplete }) => {
   const [detectedBalls, setDetectedBalls] = useState([])
   const [scanAngle, setScanAngle] = useState(0)
-  const hasStartedRef = useRef(false) // Prevent duplicate detection in React StrictMode
+  const hasStartedRef = useRef(false) 
 
   const radarBlips = [
     { angle: 30, distance: 60, stars: 1 },
@@ -472,8 +470,9 @@ const DragonBall = ({ stars, index, ballsColliding, ballsRising, collisionComple
     </motion.div>
   )
 }
-
+import { useAuth } from "../../../context/AuthContext.jsx"
 function ShenronAnimation() {
+  const { user, loading } = useAuth()
   const audioRef = useRef(null)
   const pedirDeseoRef = useRef(null)
   const waitTimeRef = useRef(null)
@@ -489,47 +488,39 @@ function ShenronAnimation() {
   const [showLightning, setShowLightning] = useState(false)
   const [showParticles, setShowParticles] = useState(false)
   const [showWishForm, setShowWishForm] = useState(false)
-  const [selectedWish, setSelectedWish] = useState("")
   const [wishGranted, setWishGranted] = useState(false)
   const [shenronDisappearing, setShenronDisappearing] = useState(false)
   const [ballsScattering, setBallsScattering] = useState(false)
   const [radarBallPositions, setRadarBallPositions] = useState([])
+  const [grantedPromo, setGrantedPromo] = useState(null);
   // Estado para el oscurecimiento del cielo
   const [showDarkening, setShowDarkening] = useState(false)
+  
+  const handleGranted = (result) => {
+    // result = { deseo, promocion } que devuelve el formulario
+    setGrantedPromo(result);
 
-  // Opciones de deseos predefinidas
-  const wishOptions = [
-    {
-      id: "immortality",
-      text: "🌟 Quiero ser inmortal",
-      response: "Tu deseo de inmortalidad ha sido concedido. ¡Ahora vivirás para siempre!",
-    },
-    {
-      id: "power",
-      text: "💪 Quiero un poder increíble",
-      response: "Has recibido un poder más allá de tu imaginación. ¡Úsalo sabiamente!",
-    },
-    {
-      id: "wealth",
-      text: "💰 Quiero riquezas infinitas",
-      response: "Las riquezas del mundo ahora son tuyas. ¡Que las uses con sabiduría!",
-    },
-    {
-      id: "knowledge",
-      text: "🧠 Quiero conocimiento supremo",
-      response: "El conocimiento del universo fluye ahora por tu mente. ¡Úsalo bien!",
-    },
-    {
-      id: "peace",
-      text: "🕊️ Quiero paz mundial",
-      response: "La paz reinará en la Tierra. Tu noble corazón ha sido recompensado.",
-    },
-    {
-      id: "youth",
-      text: "⏰ Quiero recuperar mi juventud",
-      response: "Tu juventud ha sido restaurada. ¡Disfruta de tu nueva vitalidad!",
-    },
-  ]
+    // Sonido final (igual a tu flujo previo)
+    if (waitTimeRef.current) {
+      waitTimeRef.current.pause();
+      waitTimeRef.current.currentTime = 0;
+    }
+    if (finalVozRef.current) {
+      finalVozRef.current.play().catch(() => {});
+    }
+
+    setWishGranted(true);
+    setShowWishForm(false);
+
+    setTimeout(() => setShenronDisappearing(true), 7000);
+    setTimeout(() => {
+      setBallsScattering(true);
+      setShowShenron(false);
+    }, 5000);
+    setTimeout(() => {
+      resetAnimation();
+    }, 8000);
+  };
 
   // Función para detener todos los audios
   const stopAllAudios = () => {
@@ -599,37 +590,6 @@ function ShenronAnimation() {
     setTimeout(() => setShowWishForm(true), 10700)
   }
 
-  const grantWish = () => {
-    if (!selectedWish) return
-
-    // Detener el audio de wait_time y reproducir final_voz
-    if (waitTimeRef.current) {
-      waitTimeRef.current.pause()
-      waitTimeRef.current.currentTime = 0
-    }
-    if (finalVozRef.current) {
-      finalVozRef.current.play().catch((err) => {
-        console.warn("Error reproduciendo final_voz.mp3:", err)
-      })
-    }
-
-    setWishGranted(true)
-    setShowWishForm(false)
-
-    // Secuencia de desaparición
-    setTimeout(() => {
-      setShenronDisappearing(true)
-    }, 7000)
-    setTimeout(() => {
-      setBallsScattering(true)
-      setShowShenron(false)
-    }, 5000)
-
-    // Reset completo después de la animación
-    setTimeout(() => {
-      resetAnimation()
-    }, 8000)
-  }
 
   const resetAnimation = () => {
     stopAllAudios()
@@ -644,15 +604,11 @@ function ShenronAnimation() {
     setShowLightning(false)
     setShowParticles(false)
     setShowWishForm(false)
-    setSelectedWish("")
     setWishGranted(false)
     setShenronDisappearing(false)
     setBallsScattering(false)
     setShowDarkening(false) // Reset darkening
   }
-
-  const selectedWishData = wishOptions.find((wish) => wish.id === selectedWish)
-
   // Generate random particles
   const particles = Array.from({ length: 20 }, (_, i) => ({
     id: i,
@@ -1079,110 +1035,15 @@ function ShenronAnimation() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showWishForm && !wishGranted && (
-          <motion.div
-            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-gradient-to-b from-orange-950 to-black border-8 border-orange-500 p-8 max-w-2xl w-full relative overflow-hidden"
-              style={{
-                boxShadow: "0 0 50px rgba(251, 146, 60, 0.5), inset 0 0 30px rgba(251, 146, 60, 0.1)",
-              }}
-              initial={{ scale: 0.5, y: 100 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.5, y: -100 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10"
-                animate={{
-                  x: ["-100%", "100%"],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "linear",
-                }}
-              />
-
-              <h2
-                className="text-5xl font-black text-orange-400 text-center mb-8 uppercase tracking-widest relative z-10"
-                style={{
-                  textShadow:
-                    "4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 20px rgba(251, 146, 60, 0.8)",
-                }}
-              >
-                Elige tu deseo
-              </h2>
-              <div className="space-y-3 mb-8 relative z-10">
-                {wishOptions.map((wish, index) => (
-                  <motion.button
-                    key={wish.id}
-                    onClick={() => setSelectedWish(wish.id)}
-                    className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
-                      selectedWish === wish.id
-                        ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
-                        : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
-                    }`}
-                    style={
-                      selectedWish === wish.id
-                        ? {
-                            textShadow: "2px 2px 0 #000, -1px -1px 0 #000",
-                            boxShadow: "0 0 20px rgba(251, 146, 60, 0.5)",
-                          }
-                        : {}
-                    }
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {wish.text}
-                  </motion.button>
-                ))}
-              </div>
-              <div className="flex gap-4 relative z-10">
-                <motion.button
-                  onClick={grantWish}
-                  disabled={!selectedWish}
-                  className="flex-1 py-4 px-6 bg-gradient-to-b from-orange-500 to-orange-600 text-white font-black uppercase tracking-wider disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed hover:from-orange-400 hover:to-orange-500 transition-all border-4 border-orange-400 disabled:border-gray-500"
-                  style={
-                    selectedWish
-                      ? {
-                          textShadow: "2px 2px 0 #000, -1px -1px 0 #000",
-                          boxShadow: "0 0 20px rgba(251, 146, 60, 0.5)",
-                        }
-                      : {}
-                  }
-                  whileHover={selectedWish ? { scale: 1.02 } : {}}
-                  whileTap={selectedWish ? { scale: 0.98 } : {}}
-                >
-                  Conceder Deseo
-                </motion.button>
-                <motion.button
-                  onClick={resetAnimation}
-                  className="py-4 px-6 bg-black text-orange-400 border-4 border-orange-700 font-black uppercase tracking-wider hover:bg-orange-950 hover:border-orange-500 transition-all"
-                  style={{
-                    textShadow: "1px 1px 0 #000",
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Cancelar
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ShenronWishForm
+        usuarioId=  {user?.id ?? null}
+        open={showWishForm && !wishGranted}
+        onGranted={handleGranted}
+        onCancel={() => setShowWishForm(false)}
+      />
 
       <AnimatePresence>
-        {wishGranted && selectedWishData && (
+        {wishGranted && (
           <motion.div
             className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
@@ -1191,68 +1052,37 @@ function ShenronAnimation() {
           >
             <motion.div
               className="bg-gradient-to-b from-orange-950 to-black border-8 border-orange-500 p-12 max-w-2xl w-full text-center relative overflow-hidden"
-              style={{
-                boxShadow: "0 0 60px rgba(251, 146, 60, 0.7), inset 0 0 40px rgba(251, 146, 60, 0.2)",
-              }}
+              style={{ boxShadow: "0 0 60px rgba(251,146,60,.7), inset 0 0 40px rgba(251,146,60,.2)" }}
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               exit={{ scale: 0, rotate: 180 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
             >
-              {[...Array(8)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute top-1/2 left-1/2 w-1 h-full bg-gradient-to-b from-orange-400 via-orange-500 to-transparent origin-top"
-                  style={{
-                    transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
-                  }}
-                  animate={{
-                    opacity: [0.3, 0.7, 0.3],
-                    scaleY: [0.8, 1.2, 0.8],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Number.POSITIVE_INFINITY,
-                    delay: i * 0.1,
-                  }}
-                />
-              ))}
-
-              <motion.div
-                className="text-6xl mb-6 relative z-10"
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  rotate: { duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" },
-                  scale: { duration: 1, repeat: Number.POSITIVE_INFINITY },
-                }}
-              >
-                ✨
-              </motion.div>
-              <h2
-                className="text-6xl font-black text-orange-400 mb-6 uppercase tracking-widest relative z-10"
-                style={{
-                  textShadow:
-                    "5px 5px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 30px rgba(251, 146, 60, 1)",
-                }}
-              >
+              <h2 className="text-6xl font-black text-orange-400 mb-6 uppercase tracking-widest relative z-10"
+                  style={{ textShadow:"5px 5px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 30px rgba(251,146,60,1)" }}>
                 Deseo Concedido
               </h2>
-              <p
-                className="text-xl text-orange-200 leading-relaxed font-bold relative z-10"
-                style={{
-                  textShadow: "2px 2px 0 #000",
-                }}
-              >
-                {selectedWishData.response}
-              </p>
+
+              {grantedPromo ? (
+                <div className="text-xl text-orange-200 leading-relaxed font-bold relative z-10 space-y-2" style={{ textShadow: "2px 2px 0 #000" }}>
+                  <div>Tipo promo: <span className="text-orange-400">{grantedPromo.promocion?.tipo ?? "—"}</span></div>
+                  {grantedPromo.promocion?.porcentaje != null && (
+                    <div>Porcentaje: <span className="text-orange-400">{Number(grantedPromo.promocion.porcentaje)}%</span></div>
+                  )}
+                  {grantedPromo.promocion?.expiraEl && (
+                    <div>Vigente hasta: <span className="text-orange-400">{new Date(grantedPromo.promocion.expiraEl).toLocaleString()}</span></div>
+                  )}
+                  <div>Deseo ID: <span className="text-orange-400">{grantedPromo.deseo?.id ?? "—"}</span></div>
+                </div>
+              ) : (
+                <p className="text-xl text-orange-200 leading-relaxed font-bold relative z-10" style={{ textShadow: "2px 2px 0 #000" }}>
+                  ¡Concedido!
+                </p>
+              )}
+
               <motion.div
                 className="mt-8 text-sm text-orange-400 uppercase tracking-widest font-bold relative z-10"
-                style={{
-                  textShadow: "1px 1px 0 #000",
-                }}
+                style={{ textShadow: "1px 1px 0 #000" }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.5 }}
@@ -1263,6 +1093,7 @@ function ShenronAnimation() {
           </motion.div>
         )}
       </AnimatePresence>
+
 
       <AnimatePresence>
         {showShenron && !showWishForm && !wishGranted && (

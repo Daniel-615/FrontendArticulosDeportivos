@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useMemo, useState } from "react"
 import { getEnvios, putEnvioGuia } from "../../api-gateway/envio.js"
 import { getEstadosOfEnvio, putEstadoEnvio } from "../../api-gateway/estado.envio.js"

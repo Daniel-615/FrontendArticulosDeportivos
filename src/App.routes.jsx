@@ -36,6 +36,7 @@ import PaymentCancel from "./pages/checkout/paymentCancel.jsx"
 import EnviosManager from "./pages/envio-service/EnvioForm.jsx"
 import TarifaEnvioForm from "./pages/envio-service/tarifaEnvioForm.jsx"
 import DashboardForm from "./components/dashboard.jsx"
+import PromocionCreateForm from "./pages/product-service/PromocionForm.jsx"
 
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
@@ -228,12 +229,21 @@ function AppRoutes() {
         }
       />     
      
+      
       {/* Shenron */}
       <Route
         path="/shenron"
         element={
           <ProtectedRoute>
             <ShenronAnimation />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="/promocion"
+        element={
+          <ProtectedRoute>
+            {user?.rol?.some((r) => r === "admin" || r === "empleado") ? <PromocionCreateForm /> : <UnauthorizedPage />}
           </ProtectedRoute>
         }
       />

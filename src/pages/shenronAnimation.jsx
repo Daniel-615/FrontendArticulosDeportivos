@@ -470,7 +470,7 @@ const DragonBall = ({ stars, index, ballsColliding, ballsRising, collisionComple
     </motion.div>
   )
 }
-import { useAuth } from "../../../context/AuthContext.jsx"
+import { useAuth } from "../context/AuthContext.jsx"
 function ShenronAnimation() {
   const { user, loading } = useAuth()
   const audioRef = useRef(null)

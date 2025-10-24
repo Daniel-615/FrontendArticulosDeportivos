@@ -1,73 +1,106 @@
-
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Truck, Percent, Dice5 } from "lucide-react";
+import { Sparkles, Percent, Gift, Truck, Dice5 } from "lucide-react";
 import { createDeseo } from "../api-gateway/deseo.crud.js";
-
+import { getPromociones } from "../api-gateway/promocion.crud.js";
 
 export default function ShenronWishForm({ usuarioId, open, onGranted, onCancel }) {
-  const [selected, setSelected] = useState("");
-  const [porcentaje, setPorcentaje] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [loadingPromos, setLoadingPromos] = useState(false);
   const [err, setErr] = useState("");
+  const [promos, setPromos] = useState([]);          
+  const [selectedPromoId, setSelectedPromoId] = useState(""); 
 
-  const options = useMemo(
-    () => [
-      { id: "ENVIO_GRATIS", icon: <Truck className="w-4 h-4" />, label: "Envío gratis", desc: "Gratis en el envío de tu pedido." },
-      { id: "DESC_FIJO", icon: <Percent className="w-4 h-4" />, label: "Descuento fijo (%)", desc: "Elige un porcentaje y aplícalo." },
-      { id: "DESC_RANDOM", icon: <Dice5 className="w-4 h-4" />, label: "Descuento aleatorio", desc: "Shenron decide el % 👀" },
-    ],
-    []
-  );
 
-  const buildPayload = () => {
-    if (selected === "ENVIO_GRATIS") return { tipo: "ENVIO_GRATIS" };
-    if (selected === "DESC_RANDOM") return { tipo: "DESC_RANDOM" };
-    if (selected === "DESC_FIJO") return { tipo: "DESC_FIJO", porcentaje: Number(porcentaje) || 0 };
-    return {}; 
+  useEffect(() => {
+    if (!open) return;
+    setErr("");
+    setSelectedPromoId("");
+    setLoadingPromos(true);
+
+    getPromociones({ vigentes: true, activo: true })
+      .then((resp) => {
+        if (!resp?.success) {
+          setErr(resp?.error || "No se pudieron obtener las promociones.");
+          setPromos([]);
+          return;
+        }
+        const list = Array.isArray(resp.data) ? resp.data : (resp.data?.items || []);
+        setPromos(list || []);
+      })
+      .catch(() => setErr("Error al obtener las promociones."))
+      .finally(() => setLoadingPromos(false));
+  }, [open]);
+
+  const groups = useMemo(() => {
+    const map = { ENVIO_GRATIS: [], DESC_FIJO: [], DESC_RANDOM: [], OTROS: [] };
+    for (const p of promos) {
+      const key = ["ENVIO_GRATIS", "DESC_FIJO", "DESC_RANDOM"].includes(p?.tipo) ? p.tipo : "OTROS";
+      map[key].push(p);
+    }
+    return map;
+  }, [promos]);
+
+  const iconForTipo = (tipo) => {
+    if (tipo === "ENVIO_GRATIS") return <Truck className="w-4 h-4" />;
+    if (tipo === "DESC_FIJO") return <Percent className="w-4 h-4" />;
+    if (tipo === "DESC_RANDOM") return <Dice5 className="w-4 h-4" />;
+    return <Gift className="w-4 h-4" />;
+  };
+
+  const labelForPromo = (p) => {
+
+    if (p.tipo === "ENVIO_GRATIS") return "Envío gratis";
+    if (p.tipo === "DESC_FIJO") {
+
+      const pct = p.porcentaje ?? p.metadata?.porcentaje;
+      return `Descuento fijo ${pct != null ? `(${pct}%)` : ""}`.trim();
+    }
+    if (p.tipo === "DESC_RANDOM") return "Descuento aleatorio";
+
+    return p.nombre || p.titulo || `Promo #${p.id}`;
+  };
+
+  const descForPromo = (p) => {
+    const vence = p.expiraEl ? `Vence: ${new Date(p.expiraEl).toLocaleString()}` : "";
+    const usos = p.usosMaximos != null ? `Usos máx: ${p.usosMaximos}` : "";
+    const parts = [p.descripcion, vence, usos].filter(Boolean);
+    return parts.join(" · ");
   };
 
   const handleGrant = async () => {
-    if (!usuarioId) {
-      setErr("Falta usuarioId.");
-      return;
-    }
-    if (!selected) {
-      setErr("Selecciona un deseo.");
-      return;
-    }
-    if (selected === "DESC_FIJO" && (porcentaje === "" || porcentaje == null)) {
-      setErr("Indica un porcentaje para el descuento fijo.");
-      return;
-    }
-    if (selected === "DESC_FIJO" && (Number(porcentaje) < 0 || Number(porcentaje) > 100)) {
-      setErr("El porcentaje debe estar entre 0 y 100.");
-      return;
-    }
+    if (!usuarioId) return setErr("Falta usuarioId.");
+    if (!selectedPromoId) return setErr("Selecciona una promoción.");
 
     setLoading(true);
     setErr("");
     try {
-      const payload = buildPayload();
-      const resp = await createDeseo(usuarioId, payload);
-      if (!resp.success) {
-        setErr(resp.error || "No se pudo conceder el deseo.");
+      const resp = await createDeseo(usuarioId, { promocionId: selectedPromoId });
+      if (!resp?.success) {
+        setErr(resp?.error || "No se pudo conceder el deseo.");
         setLoading(false);
         return;
       }
 
       const data = resp.data || {};
-      const result = {
+      onGranted?.({
         deseo: data.deseo,
         promocion: data.promocion || data.promo,
-      };
-
-      onGranted?.(result);
-    } catch (e) {
+      });
+    } catch {
       setErr("Error de red o del servidor.");
       setLoading(false);
     }
   };
+
+
+  const LoadingSkeleton = ({ rows = 3 }) => (
+    <div className="grid grid-cols-1 gap-3 mb-6">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="h-16 border-4 border-orange-800 bg-black/40 animate-pulse" />
+      ))}
+    </div>
+  );
 
   return (
     <AnimatePresence>
@@ -103,66 +136,147 @@ export default function ShenronWishForm({ usuarioId, open, onGranted, onCancel }
                 </div>
               </h2>
 
-              {/* Opciones */}
-              <div className="grid grid-cols-1 gap-3 mb-6">
-                {options.map((opt, idx) => (
-                  <motion.button
-                    key={opt.id}
-                    onClick={() => setSelected(opt.id)}
-                    className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
-                      selected === opt.id
-                        ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
-                        : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
-                    }`}
-                    initial={{ opacity: 0, x: -40 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.08 }}
-                  >
-                    <div className="flex items-center gap-3">
-                      {opt.icon}
-                      <span className="text-base">{opt.label}</span>
-                    </div>
-                    <div className="text-xs opacity-80 mt-1 normal-case">{opt.desc}</div>
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Campo porcentaje si corresponde */}
-              {selected === "DESC_FIJO" && (
-                <div className="mb-6">
-                  <label className="block text-sm font-bold mb-2 uppercase text-orange-200">Porcentaje</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={porcentaje}
-                      onChange={(e) => setPorcentaje(e.target.value)}
-                      placeholder="Ej: 10"
-                      className="w-full px-4 py-3 bg-white text-black border-2 border-white focus:outline-none uppercase placeholder:text-gray-400"
-                    />
-                    <Percent className="w-5 h-5 text-orange-300" />
-                  </div>
-                  <p className="text-xs text-orange-300 mt-1">Rango permitido: 0 a 100.</p>
+              {/* Lista de promociones */}
+              {loadingPromos ? (
+                <LoadingSkeleton rows={4} />
+              ) : promos.length === 0 ? (
+                <div className="mb-6 text-orange-200">
+                  No hay promociones vigentes/activas disponibles.
                 </div>
+              ) : (
+                <>
+                  {/* ENVIO_GRATIS */}
+                  {groups.ENVIO_GRATIS.length > 0 && (
+                    <>
+                      <h3 className="text-sm text-orange-300 uppercase font-bold mb-2">Envío gratis</h3>
+                      <div className="grid grid-cols-1 gap-3 mb-6">
+                        {groups.ENVIO_GRATIS.map((p, idx) => (
+                          <motion.button
+                            key={p.id}
+                            onClick={() => setSelectedPromoId(p.id)}
+                            className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
+                              selectedPromoId === p.id
+                                ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
+                                : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
+                            }`}
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              {iconForTipo(p.tipo)}
+                              <span className="text-base">{labelForPromo(p)}</span>
+                            </div>
+                            <div className="text-xs opacity-80 mt-1 normal-case">{descForPromo(p)}</div>
+                            <div className="text-[10px] mt-1 opacity-60">ID: {p.id}</div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* DESC_FIJO */}
+                  {groups.DESC_FIJO.length > 0 && (
+                    <>
+                      <h3 className="text-sm text-orange-300 uppercase font-bold mb-2">Descuentos fijos</h3>
+                      <div className="grid grid-cols-1 gap-3 mb-6">
+                        {groups.DESC_FIJO.map((p, idx) => (
+                          <motion.button
+                            key={p.id}
+                            onClick={() => setSelectedPromoId(p.id)}
+                            className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
+                              selectedPromoId === p.id
+                                ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
+                                : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
+                            }`}
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              {iconForTipo(p.tipo)}
+                              <span className="text-base">{labelForPromo(p)}</span>
+                            </div>
+                            <div className="text-xs opacity-80 mt-1 normal-case">{descForPromo(p)}</div>
+                            <div className="text-[10px] mt-1 opacity-60">ID: {p.id}</div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* DESC_RANDOM */}
+                  {groups.DESC_RANDOM.length > 0 && (
+                    <>
+                      <h3 className="text-sm text-orange-300 uppercase font-bold mb-2">Descuento aleatorio</h3>
+                      <div className="grid grid-cols-1 gap-3 mb-6">
+                        {groups.DESC_RANDOM.map((p, idx) => (
+                          <motion.button
+                            key={p.id}
+                            onClick={() => setSelectedPromoId(p.id)}
+                            className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
+                              selectedPromoId === p.id
+                                ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
+                                : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
+                            }`}
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              {iconForTipo(p.tipo)}
+                              <span className="text-base">{labelForPromo(p)}</span>
+                            </div>
+                            <div className="text-xs opacity-80 mt-1 normal-case">{descForPromo(p)}</div>
+                            <div className="text-[10px] mt-1 opacity-60">ID: {p.id}</div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {groups.OTROS.length > 0 && (
+                    <>
+                      <h3 className="text-sm text-orange-300 uppercase font-bold mb-2">Otras promociones</h3>
+                      <div className="grid grid-cols-1 gap-3 mb-6">
+                        {groups.OTROS.map((p, idx) => (
+                          <motion.button
+                            key={p.id}
+                            onClick={() => setSelectedPromoId(p.id)}
+                            className={`w-full p-4 border-4 transition-all text-left font-bold uppercase text-sm ${
+                              selectedPromoId === p.id
+                                ? "border-orange-400 bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
+                                : "border-orange-700 bg-black/50 text-orange-300 hover:bg-orange-950/50 hover:border-orange-500"
+                            }`}
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              {iconForTipo(p.tipo)}
+                              <span className="text-base">{labelForPromo(p)}</span>
+                            </div>
+                            <div className="text-xs opacity-80 mt-1 normal-case">{descForPromo(p)}</div>
+                            <div className="text-[10px] mt-1 opacity-60">ID: {p.id}</div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
 
               {/* Error */}
-              {err && (
-                <div className="mb-4 text-red-400 font-bold">
-                  {err}
-                </div>
-              )}
+              {err && <div className="mb-4 text-red-400 font-bold">{err}</div>}
 
               {/* Botones */}
               <div className="flex gap-4">
                 <motion.button
                   onClick={handleGrant}
-                  disabled={loading || !selected}
+                  disabled={loading || !selectedPromoId}
                   className="flex-1 py-3 bg-gradient-to-b from-orange-500 to-orange-600 text-white font-black uppercase tracking-wider border-4 border-orange-400 disabled:opacity-60"
-                  whileHover={!loading && selected ? { scale: 1.02 } : {}}
-                  whileTap={!loading && selected ? { scale: 0.98 } : {}}
+                  whileHover={!loading && selectedPromoId ? { scale: 1.02 } : {}}
+                  whileTap={!loading && selectedPromoId ? { scale: 0.98 } : {}}
                 >
                   {loading ? "Concediendo..." : "Conceder deseo"}
                 </motion.button>

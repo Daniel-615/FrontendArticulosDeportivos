@@ -1,13 +1,12 @@
-"use client"
-
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { getCartByUser, updateCartItem, removeFromCart, clearCart } from "../api-gateway/carrito.crud.js"
 import { useAuth } from "../context/AuthContext.jsx"
-import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
+import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, TicketPercent, Truck } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { calcularEnvioRequest } from "../api-gateway/tarifa.envio.crud.js"
 import { pay } from "../api-gateway/stripe.js"
 import MapDistancePicker from "../components/mapDistancePicker.jsx"
+import { getDeseosUsuario, consumirDeseo } from "../api-gateway/deseo.crud.js"
 
 const WAREHOUSE_ANTIGUA = {
   name: "Bodega - Antigua Guatemala",
@@ -31,7 +30,43 @@ export default function CartPage() {
     distanceKm: 0,
   })
 
+  // deseo activo del usuario (estado CREADO)
+  const [deseo, setDeseo] = useState(null) // { id, estado, promocion: { tipo, porcentaje, ... } }
+  const [cargandoDeseo, setCargandoDeseo] = useState(false)
+
   const navigate = useNavigate()
+
+  // Helpers para promos
+  const promoTipo = useMemo(() => String(deseo?.promocion?.tipo || "").toUpperCase(), [deseo])
+  const promoPct = useMemo(() => {
+    // porcentaje puede venir en promocion.porcentaje o metadata.porcentaje
+    const p = deseo?.promocion
+    const pct = Number(p?.porcentaje ?? p?.metadata?.porcentaje ?? 0)
+    return Number.isFinite(pct) ? pct : 0
+  }, [deseo])
+
+  const isEnvioGratis = promoTipo === "ENVIO_GRATIS"
+  const isDescFijo = promoTipo === "DESC_FIJO" && promoPct > 0
+
+  const loadDeseoActivo = async (userId) => {
+    if (!userId) return
+    setCargandoDeseo(true)
+    try {
+      const resp = await getDeseosUsuario(userId, { /* podrías usar { estado:'CREADO', limit:1 } si tu API lo soporta */ })
+      if (!resp.success) {
+        setDeseo(null)
+        return
+      }
+      const lista = Array.isArray(resp.data) ? resp.data : []
+      // Tomamos el primer deseo en estado CREADO (si vienen con include de promocion, mejor)
+      const activo = lista.find(d => String(d.estado).toUpperCase() === "CREADO")
+      setDeseo(activo || null)
+    } catch {
+      setDeseo(null)
+    } finally {
+      setCargandoDeseo(false)
+    }
+  }
 
   const loadCart = async () => {
     setLoading(true)
@@ -53,7 +88,10 @@ export default function CartPage() {
   }
 
   useEffect(() => {
-    if (user) loadCart()
+    if (user) {
+      loadCart()
+      loadDeseoActivo(user.id)
+    }
   }, [user])
 
   const handleUpdate = async (ptc_id, cantidad) => {
@@ -175,6 +213,32 @@ export default function CartPage() {
     }
   }
 
+  // Subtotal original de productos (sin promo)
+  const totalProductos = useMemo(() => {
+    return cartItems.reduce((total, item) => {
+      const price = Number(item.producto?.productoColor?.producto?.precio || 0)
+      return total + price * Number(item.cantidad || 1)
+    }, 0)
+  }, [cartItems])
+
+  // Subtotal con descuento si aplica DESC_FIJO
+  const totalProductosConDescuento = useMemo(() => {
+    if (!isDescFijo) return totalProductos
+    const descuento = (totalProductos * promoPct) / 100
+    const total = Math.max(totalProductos - descuento, 0)
+    return Number(total.toFixed(2))
+  }, [totalProductos, isDescFijo, promoPct])
+
+  // Envío final (si promo de envío gratis => 0)
+  const costoEnvioUI = useMemo(() => {
+    const base = Number(quote?.total_envio || 0)
+    return isEnvioGratis ? 0 : base
+  }, [quote, isEnvioGratis])
+
+  const totalConEnvio = useMemo(() => {
+    return (totalProductosConDescuento + costoEnvioUI).toFixed(2)
+  }, [totalProductosConDescuento, costoEnvioUI])
+
   const handlePago = async () => {
     try {
       setError(null)
@@ -202,11 +266,21 @@ export default function CartPage() {
 
       setPaying(true)
 
+      // Construimos items para Stripe: si hay DESC_FIJO, ajustamos el precio de cada ítem proporcionalmente.
+      const subtotalSinDescuento = totalProductos
+      let factor = 1
+      if (isDescFijo && subtotalSinDescuento > 0) {
+        const subtotalConDesc = totalProductosConDescuento
+        factor = subtotalConDesc / subtotalSinDescuento // para repartir el % en cada línea
+      }
+
       const items = cartItems.map((item) => {
         const baseProduct = item.producto?.productoColor?.producto ?? {}
+        const unitPrice = Number(baseProduct?.precio || 0)
+        const unitPriceConDesc = Number((unitPrice * factor).toFixed(2))
         return {
           name: baseProduct?.nombre || "Producto",
-          price: Number(baseProduct?.precio || 0),
+          price: unitPriceConDesc,
           quantity: Number(item.cantidad || 1),
           producto_talla_id: Number(item.producto_talla_color_id || 0),
           producto_id: Number(
@@ -219,38 +293,46 @@ export default function CartPage() {
         }
       })
 
-      items.push({
-        name: "Envío",
-        price: Number(quote.total_envio || 0),
-        quantity: 1,
-      })
+      // Envío: si ENVIO_GRATIS no agregamos línea de envío (o la mandamos en 0)
+      const costoEnvioFinal = isEnvioGratis ? 0 : Number(quote.total_envio || 0)
+      if (costoEnvioFinal > 0) {
+        items.push({ name: "Envío", price: costoEnvioFinal, quantity: 1 })
+      }
 
       const direccion_destino = `${coords.destination.lat.toFixed(5)}, ${coords.destination.lng.toFixed(5)}`
-      const costo_envio = Number(quote.total_envio || 0)
       const fecha_estimada = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
-      await pay({
+      // Puedes adjuntar metadata con el deseo_id para consumo en webhook (recomendado).
+      const respPay = await pay({
         userId: user.id,
         nit: String(nit).trim().toUpperCase(),
         items,
         direccion_destino,
-        costo_envio,
+        costo_envio: costoEnvioFinal,
         fecha_estimada,
+        // metadata: { deseo_id: deseo?.id || null }, // si controlas el server de Stripe
       })
+
+      // Si llegamos aquí, normalmente ya te redirige. Por si tu función retorna antes:
+      // Consumimos el deseo (si había) para que no siga válido.
+      if (deseo?.id) {
+        try {
+          await consumirDeseo(deseo.id, { motivo: "COMPRA_INICIADA" })
+          // Opcional: recargar deseo para reflejar estado
+          loadDeseoActivo(user.id)
+        } catch (e) {
+          // No cortamos el flujo de pago si falló el consumo aquí
+          console.warn("No se pudo consumir el deseo luego del pago:", e)
+        }
+      }
+
+      return respPay
     } catch (e) {
       console.error(e)
       setError(e?.message || "No se pudo iniciar el pago.")
       setPaying(false)
     }
   }
-
-  const totalPrice = cartItems.reduce((total, item) => {
-    const price = Number.parseFloat(item.producto?.productoColor?.producto.precio || 0)
-    return total + price * item.cantidad
-  }, 0)
-
-  const totalProductos = totalPrice
-  const totalConEnvio = (totalProductos + Number(quote?.total_envio || 0)).toFixed(2)
 
   return (
     <div className="min-h-screen bg-black">
@@ -264,6 +346,23 @@ export default function CartPage() {
         </div>
 
         {error && <div className="mb-8 p-4 bg-red-500/20 border border-red-500/50 text-white text-center">{error}</div>}
+
+        {/* Banner del deseo activo */}
+        {deseo && (
+          <div className="mb-6 p-4 bg-emerald-500/15 border border-emerald-400/40 text-white">
+            <div className="flex items-center gap-3">
+              {isEnvioGratis ? <Truck className="w-5 h-5" /> : <TicketPercent className="w-5 h-5" />}
+              <div className="font-bold uppercase">
+                {isEnvioGratis ? "Promoción activa: Envío gratis" : `Promoción activa: Descuento ${promoPct}%`}
+              </div>
+            </div>
+            {deseo.promocion?.expiraEl && (
+              <div className="text-white/70 text-sm mt-1">
+                Vence: {new Date(deseo.promocion.expiraEl).toLocaleString()}
+              </div>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -299,9 +398,7 @@ export default function CartPage() {
                       <img
                         src={
                           item.producto?.productoColor?.imagenUrl ||
-                          "/placeholder.svg?height=96&width=96&query=sports+product" ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg"
+                          "/placeholder.svg?height=96&width=96&query=sports+product"
                         }
                         alt={item.producto?.nombre || "Producto"}
                         className="w-full h-full object-cover"
@@ -320,7 +417,8 @@ export default function CartPage() {
                           </span>
                         </span>
                         <span>
-                          TALLA: <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
+                          TALLA:{" "}
+                          <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
                         </span>
                       </div>
                     </div>
@@ -368,10 +466,18 @@ export default function CartPage() {
                   <p className="text-white/60 text-sm uppercase tracking-wide">Productos: {cartItems.length}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-white/60 mb-1 text-sm uppercase tracking-wide">Total:</p>
-                  <p className="text-4xl font-black text-white tracking-tight">Q{totalPrice.toFixed(2)}</p>
+                  <p className="text-white/60 mb-1 text-sm uppercase tracking-wide">Total sin promos:</p>
+                  <p className="text-4xl font-black text-white tracking-tight">Q{totalProductos.toFixed(2)}</p>
                 </div>
               </div>
+
+              {/* Info de promoción aplicada a productos */}
+              {isDescFijo && (
+                <div className="mb-4 text-emerald-300">
+                  Descuento aplicado a productos: <strong>{promoPct}%</strong> — Nuevo subtotal:{" "}
+                  <strong>Q{totalProductosConDescuento.toFixed(2)}</strong>
+                </div>
+              )}
 
               <div className="mb-4 text-white/60 text-sm">
                 <div>
@@ -451,33 +557,39 @@ export default function CartPage() {
                     <h4 className="text-xl font-bold text-white">Envío estimado</h4>
                     <div className="text-right">
                       <p className="text-white/60 text-sm">Distancia: {Number(quote.distancia_km).toFixed(2)} km</p>
-                      <p className="text-3xl font-bold text-white">Q{Number(quote.total_envio).toFixed(2)}</p>
+                      {isEnvioGratis ? (
+                        <p className="text-emerald-300 font-bold text-lg">Envío GRATIS por promoción</p>
+                      ) : (
+                        <p className="text-3xl font-bold text-white">Q{Number(quote.total_envio).toFixed(2)}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-3 mt-3 text-white/60 text-sm">
-                    <div>
-                      Recargo por distancia:{" "}
-                      <span className="font-semibold text-white">
-                        Q{Number(quote.recargo_distancia_total).toFixed(2)}
-                      </span>
+                  {!isEnvioGratis && (
+                    <div className="grid md:grid-cols-3 gap-3 mt-3 text-white/60 text-sm">
+                      <div>
+                        Recargo por distancia:{" "}
+                        <span className="font-semibold text-white">
+                          Q{Number(quote.recargo_distancia_total).toFixed(2)}
+                        </span>
+                      </div>
+                      <div>
+                        Costo base único:{" "}
+                        <span className="font-semibold text-white">
+                          Q{Number(quote.costo_base_envio_unico).toFixed(2)}
+                        </span>
+                      </div>
+                      <div>
+                        Descuento aplicado:{" "}
+                        <span className="font-semibold text-white">
+                          {quote.descuento_por_envio_pct
+                            ? `${(Number(quote.descuento_por_envio_pct) * 100).toFixed(0)}%`
+                            : "0%"}{" "}
+                          (Q{Number(quote.descuento_por_envio_total).toFixed(2)})
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      Costo base único:{" "}
-                      <span className="font-semibold text-white">
-                        Q{Number(quote.costo_base_envio_unico).toFixed(2)}
-                      </span>
-                    </div>
-                    <div>
-                      Descuento aplicado:{" "}
-                      <span className="font-semibold text-white">
-                        {quote.descuento_por_envio_pct
-                          ? `${(Number(quote.descuento_por_envio_pct) * 100).toFixed(0)}%`
-                          : "0%"}{" "}
-                        (Q{Number(quote.descuento_por_envio_total).toFixed(2)})
-                      </span>
-                    </div>
-                  </div>
+                  )}
 
                   <details className="mt-4">
                     <summary className="cursor-pointer text-white hover:text-white/80">
@@ -522,7 +634,9 @@ export default function CartPage() {
                   </div>
 
                   <div className="mt-4 text-right">
-                    <div className="text-white/60">Total productos: Q{totalProductos.toFixed(2)}</div>
+                    <div className="text-white/60">
+                      Total productos {isDescFijo ? "(con descuento)" : ""}: Q{totalProductosConDescuento.toFixed(2)}
+                    </div>
                     <div className="text-xl font-bold text-white">Total a pagar aprox.: Q{totalConEnvio}</div>
                   </div>
                 </div>

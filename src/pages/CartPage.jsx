@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useMemo, useState } from "react"
 import { getCartByUser, updateCartItem, removeFromCart, clearCart } from "../api-gateway/carrito.crud.js"
 import { useAuth } from "../context/AuthContext.jsx"
@@ -16,59 +18,55 @@ const WAREHOUSE_ANTIGUA = {
 
 export default function CartPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+
+  // Estado UI
   const [cartItems, setCartItems] = useState([])
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [paying, setPaying] = useState(false)
   const [quoting, setQuoting] = useState(false)
+
+  // Cotización de envío
   const [quote, setQuote] = useState(null)
+
+  // Facturación
   const [nit, setNit] = useState("CF")
   const [nitError, setNitError] = useState("")
+
+  // Mapa / destino
   const [coords, setCoords] = useState({
     origin: { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
     destination: null,
     distanceKm: 0,
   })
 
-  // deseo activo del usuario (estado CREADO)
-  const [deseo, setDeseo] = useState(null) // { id, estado, promocion: { tipo, porcentaje, ... } }
+  // Promociones (deseo)
+  const [deseo, setDeseo] = useState(null)
   const [cargandoDeseo, setCargandoDeseo] = useState(false)
 
-  const navigate = useNavigate()
-
-  // Helpers para promos
-  const promoTipo = useMemo(() => String(deseo?.promocion?.tipo || "").toUpperCase(), [deseo])
-  const promoPct = useMemo(() => {
-    // porcentaje puede venir en promocion.porcentaje o metadata.porcentaje
-    const p = deseo?.promocion
-    const pct = Number(p?.porcentaje ?? p?.metadata?.porcentaje ?? 0)
-    return Number.isFinite(pct) ? pct : 0
-  }, [deseo])
-
-  const isEnvioGratis = promoTipo === "ENVIO_GRATIS"
-  const isDescFijo = promoTipo === "DESC_FIJO" && promoPct > 0
-
-  const loadDeseoActivo = async (userId) => {
-    if (!userId) return
-    setCargandoDeseo(true)
-    try {
-      const resp = await getDeseosUsuario(userId, { /* podrías usar { estado:'CREADO', limit:1 } si tu API lo soporta */ })
-      if (!resp.success) {
-        setDeseo(null)
-        return
-      }
-      const lista = Array.isArray(resp.data) ? resp.data : []
-      // Tomamos el primer deseo en estado CREADO (si vienen con include de promocion, mejor)
-      const activo = lista.find(d => String(d.estado).toUpperCase() === "CREADO")
-      setDeseo(activo || null)
-    } catch {
-      setDeseo(null)
-    } finally {
-      setCargandoDeseo(false)
-    }
+  // ===== Helpers =====
+  const isNitValid = (value) => {
+    if (!value) return false
+    const v = String(value).trim()
+    if (/^cf$/i.test(v)) return true
+    return /^(\d+|\d+-?\d+[kK]?)$/.test(v)
   }
 
+  const handleNitChange = (val) => {
+    setNit(val)
+    if (!val) setNitError("El NIT es requerido. Si no desea facturar, use CF.")
+    else if (!isNitValid(val)) setNitError("NIT inválido. Ejemplos: CF, 1234567, 1234567-8, 1234567-K")
+    else setNitError("")
+  }
+
+  useEffect(() => {
+    setQuote(null) // cambiar destino invalida la cotización
+  }, [coords.destination])
+
+  // ===== Carga de datos =====
   const loadCart = async () => {
+    if (!user?.id) return
     setLoading(true)
     try {
       const response = await getCartByUser(user.id)
@@ -87,6 +85,28 @@ export default function CartPage() {
     }
   }
 
+  const loadDeseoActivo = async (userId) => {
+    if (!userId) return
+    setCargandoDeseo(true)
+    try {
+      const resp = await getDeseosUsuario(userId) // devuelve array []
+      if (!resp.success) {
+        setDeseo(null)
+        return
+      }
+      const lista = Array.isArray(resp.data) ? resp.data : []
+      const activo =
+        lista
+          .filter((d) => String(d.estado).toUpperCase() === "CREADO")
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null
+      setDeseo(activo)
+    } catch {
+      setDeseo(null)
+    } finally {
+      setCargandoDeseo(false)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       loadCart()
@@ -94,6 +114,125 @@ export default function CartPage() {
     }
   }, [user])
 
+  // ===== Mapeo para envío =====
+  function mapCartToShippingItems(list) {
+    return list.map((ci) => {
+      const p = ci.producto?.productoColor?.producto || {}
+      const alto = Number(p.alto ?? p.alto_cm ?? 0)
+      const ancho = Number(p.ancho ?? p.ancho_cm ?? 0)
+      const largo = Number(p.largo ?? p.largo_cm ?? 0)
+      const peso = Number(p.peso ?? p.peso_kg ?? 0)
+      const precio = Number(p.precio ?? 0)
+      return {
+        alto,
+        ancho,
+        largo,
+        peso,
+        precio,
+        cantidad: Number(ci.cantidad ?? 1),
+        fragil: Boolean(p.fragil ?? false),
+        nombre: p.nombre || "Producto",
+        sku: p.sku || undefined,
+        imagenUrl: ci.producto?.productoColor?.imagenUrl,
+        talla: ci.producto?.tallaInfo?.valor,
+      }
+    })
+  }
+
+  // ===== Cotizar envío =====
+  const handleCalcularEnvio = async () => {
+    try {
+      setError(null)
+      setQuote(null)
+
+      if (!user?.id) return setError("Debes iniciar sesión para calcular el envío.")
+      if (!Array.isArray(cartItems) || cartItems.length === 0) return setError("Tu carrito está vacío.")
+      if (!coords?.destination) return setError("Selecciona un destino en el mapa.")
+
+      const items = mapCartToShippingItems(cartItems)
+      const payload = {
+        items,
+        envio: {
+          origen_lat: WAREHOUSE_ANTIGUA.lat,
+          origen_lng: WAREHOUSE_ANTIGUA.lng,
+          destino_lat: coords.destination.lat,
+          destino_lng: coords.destination.lng,
+        },
+      }
+
+      setQuoting(true)
+      const resp = await calcularEnvioRequest(payload)
+      if (!resp.success) return setError(resp.error || "No se pudo calcular el envío.")
+      setQuote(resp.data)
+      setNit("CF")
+      setNitError("")
+    } catch (e) {
+      console.error(e)
+      setError(e?.message || "Error al calcular el envío.")
+    } finally {
+      setQuoting(false)
+    }
+  }
+
+  // ===== Totales y promos =====
+  const totalProductos = useMemo(() => {
+    return cartItems.reduce((total, item) => {
+      const price = Number(item.producto?.productoColor?.producto?.precio || 0)
+      return total + price * Number(item.cantidad || 1)
+    }, 0)
+  }, [cartItems])
+
+  const cumpleReglasPromo = useMemo(() => {
+    const p = deseo?.promocion
+    if (!deseo || !p) return false
+    if (!p.activo) return false
+    if (String(deseo.estado).toUpperCase() !== "CREADO") return false
+
+    const expira = p.expiraEl ? new Date(p.expiraEl) : null
+    if (expira && Date.now() > expira.getTime()) return false
+
+    const max = Number(p.usosMaximos ?? 1)
+    const usados = Number(deseo.usosRealizados ?? 0)
+    if (Number.isFinite(max) && Number.isFinite(usados) && usados >= max) return false
+
+    const minCompra = Number(p.metadata?.minCompra ?? 0)
+    if (Number.isFinite(minCompra) && totalProductos < minCompra) return false
+
+    return true
+  }, [deseo, totalProductos])
+
+  const promoTipo = useMemo(
+    () => (cumpleReglasPromo ? String(deseo?.promocion?.tipo || "").toUpperCase() : ""),
+    [cumpleReglasPromo, deseo]
+  )
+
+  const promoPct = useMemo(() => {
+    if (!cumpleReglasPromo) return 0
+    const p = deseo?.promocion
+    const pct = Number(p?.porcentaje ?? p?.metadata?.porcentaje ?? 0)
+    return Number.isFinite(pct) ? pct : 0
+  }, [cumpleReglasPromo, deseo])
+
+  // Nota: En tu negocio "DESC_FIJO" representa % (si luego agregas monto fijo, cambia aquí)
+  const isEnvioGratis = promoTipo === "ENVIO_GRATIS"
+  const isDescPorc = promoTipo === "DESC_FIJO" && promoPct > 0
+
+  const totalProductosConDescuento = useMemo(() => {
+    if (!isDescPorc) return totalProductos
+    const descuento = (totalProductos * promoPct) / 100
+    return Number(Math.max(totalProductos - descuento, 0).toFixed(2))
+  }, [totalProductos, isDescPorc, promoPct])
+
+  const costoEnvioUI = useMemo(() => {
+    const base = Number(quote?.total_envio || 0)
+    return isEnvioGratis ? 0 : base
+  }, [quote, isEnvioGratis])
+
+  const totalConEnvio = useMemo(() => {
+    return (totalProductosConDescuento + costoEnvioUI).toFixed(2)
+  }, [totalProductosConDescuento, costoEnvioUI])
+
+  // ===== Acciones carrito =====
   const handleUpdate = async (ptc_id, cantidad) => {
     if (cantidad < 1) return
     const response = await updateCartItem(user.id, ptc_id, cantidad)
@@ -119,159 +258,24 @@ export default function CartPage() {
     } else setError(response.error || "No se pudo vaciar el carrito.")
   }
 
-  const isNitValid = (value) => {
-    if (!value) return false
-    const v = String(value).trim()
-    if (/^cf$/i.test(v)) return true
-    return /^(\d+|\d+-?\d+[kK]?)$/.test(v)
-  }
-
-  const handleNitChange = (val) => {
-    setNit(val)
-    if (!val) {
-      setNitError("El NIT es requerido. Si no desea facturar, use CF.")
-    } else if (!isNitValid(val)) {
-      setNitError("NIT inválido. Ejemplos: CF, 1234567, 1234567-8, 1234567-K")
-    } else {
-      setNitError("")
-    }
-  }
-
-  useEffect(() => {
-    setQuote(null)
-  }, [coords.destination])
-
-  function mapCartToShippingItems(list) {
-    return list.map((ci) => {
-      const p = ci.producto?.productoColor?.producto || {}
-      const alto = Number(p.alto ?? p.alto_cm ?? 0)
-      const ancho = Number(p.ancho ?? p.ancho_cm ?? 0)
-      const largo = Number(p.largo ?? p.largo_cm ?? 0)
-      const peso = Number(p.peso ?? p.peso_kg ?? 0)
-      const precio = Number(p.precio ?? 0)
-
-      return {
-        alto,
-        ancho,
-        largo,
-        peso,
-        precio,
-        cantidad: Number(ci.cantidad ?? 1),
-        fragil: Boolean(p.fragil ?? false),
-        nombre: p.nombre || "Producto",
-        sku: p.sku || undefined,
-        imagenUrl: ci.producto?.productoColor?.imagenUrl,
-        talla: ci.producto?.tallaInfo?.valor,
-      }
-    })
-  }
-
-  const handleCalcularEnvio = async () => {
-    try {
-      setError(null)
-      setQuote(null)
-
-      if (!user?.id) {
-        setError("Debes iniciar sesión para calcular el envío.")
-        return
-      }
-      if (!Array.isArray(cartItems) || cartItems.length === 0) {
-        setError("Tu carrito está vacío.")
-        return
-      }
-      if (!coords?.destination) {
-        setError("Selecciona un destino en el mapa.")
-        return
-      }
-
-      const items = mapCartToShippingItems(cartItems)
-
-      const payload = {
-        items,
-        envio: {
-          origen_lat: WAREHOUSE_ANTIGUA.lat,
-          origen_lng: WAREHOUSE_ANTIGUA.lng,
-          destino_lat: coords.destination.lat,
-          destino_lng: coords.destination.lng,
-        },
-      }
-
-      setQuoting(true)
-      const resp = await calcularEnvioRequest(payload)
-      if (!resp.success) {
-        setError(resp.error || "No se pudo calcular el envío.")
-        return
-      }
-      setQuote(resp.data)
-      setNit("CF")
-      setNitError("")
-    } catch (e) {
-      console.error(e)
-      setError(e?.message || "Error al calcular el envío.")
-    } finally {
-      setQuoting(false)
-    }
-  }
-
-  // Subtotal original de productos (sin promo)
-  const totalProductos = useMemo(() => {
-    return cartItems.reduce((total, item) => {
-      const price = Number(item.producto?.productoColor?.producto?.precio || 0)
-      return total + price * Number(item.cantidad || 1)
-    }, 0)
-  }, [cartItems])
-
-  // Subtotal con descuento si aplica DESC_FIJO
-  const totalProductosConDescuento = useMemo(() => {
-    if (!isDescFijo) return totalProductos
-    const descuento = (totalProductos * promoPct) / 100
-    const total = Math.max(totalProductos - descuento, 0)
-    return Number(total.toFixed(2))
-  }, [totalProductos, isDescFijo, promoPct])
-
-  // Envío final (si promo de envío gratis => 0)
-  const costoEnvioUI = useMemo(() => {
-    const base = Number(quote?.total_envio || 0)
-    return isEnvioGratis ? 0 : base
-  }, [quote, isEnvioGratis])
-
-  const totalConEnvio = useMemo(() => {
-    return (totalProductosConDescuento + costoEnvioUI).toFixed(2)
-  }, [totalProductosConDescuento, costoEnvioUI])
-
+  // ===== Pago =====
   const handlePago = async () => {
     try {
       setError(null)
 
-      if (!user?.id) {
-        setError("Debes iniciar sesión para continuar con el pago.")
-        return
-      }
-      if (!Array.isArray(cartItems) || cartItems.length === 0) {
-        setError("Tu carrito está vacío.")
-        return
-      }
-      if (!quote) {
-        setError("Primero calcula el envío para continuar con el pago.")
-        return
-      }
-      if (!isNitValid(nit)) {
-        setError("Debes ingresar un NIT válido (o CF).")
-        return
-      }
-      if (!coords?.destination) {
-        setError("Selecciona un destino en el mapa.")
-        return
-      }
+      if (!user?.id) return setError("Debes iniciar sesión para continuar con el pago.")
+      if (!Array.isArray(cartItems) || cartItems.length === 0) return setError("Tu carrito está vacío.")
+      if (!quote) return setError("Primero calcula el envío para continuar con el pago.")
+      if (!isNitValid(nit)) return setError("Debes ingresar un NIT válido (o CF).")
+      if (!coords?.destination) return setError("Selecciona un destino en el mapa.")
 
       setPaying(true)
 
-      // Construimos items para Stripe: si hay DESC_FIJO, ajustamos el precio de cada ítem proporcionalmente.
+      // Repartir descuento proporcional en líneas
       const subtotalSinDescuento = totalProductos
       let factor = 1
-      if (isDescFijo && subtotalSinDescuento > 0) {
-        const subtotalConDesc = totalProductosConDescuento
-        factor = subtotalConDesc / subtotalSinDescuento // para repartir el % en cada línea
+      if (isDescPorc && subtotalSinDescuento > 0) {
+        factor = totalProductosConDescuento / subtotalSinDescuento
       }
 
       const items = cartItems.map((item) => {
@@ -288,12 +292,11 @@ export default function CartPage() {
               item.producto?.id ??
               item.producto?.producto_id ??
               item.producto?.productoColor?.producto_id ??
-              0,
+              0
           ),
         }
       })
 
-      // Envío: si ENVIO_GRATIS no agregamos línea de envío (o la mandamos en 0)
       const costoEnvioFinal = isEnvioGratis ? 0 : Number(quote.total_envio || 0)
       if (costoEnvioFinal > 0) {
         items.push({ name: "Envío", price: costoEnvioFinal, quantity: 1 })
@@ -302,7 +305,6 @@ export default function CartPage() {
       const direccion_destino = `${coords.destination.lat.toFixed(5)}, ${coords.destination.lng.toFixed(5)}`
       const fecha_estimada = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
-      // Puedes adjuntar metadata con el deseo_id para consumo en webhook (recomendado).
       const respPay = await pay({
         userId: user.id,
         nit: String(nit).trim().toUpperCase(),
@@ -310,18 +312,16 @@ export default function CartPage() {
         direccion_destino,
         costo_envio: costoEnvioFinal,
         fecha_estimada,
-        // metadata: { deseo_id: deseo?.id || null }, // si controlas el server de Stripe
+        metadata: { deseo_id: cumpleReglasPromo ? deseo?.id || null : null }, // para conciliar en webhook
       })
 
-      // Si llegamos aquí, normalmente ya te redirige. Por si tu función retorna antes:
-      // Consumimos el deseo (si había) para que no siga válido.
-      if (deseo?.id) {
+      // Ideal: consumir en el webhook al confirmar pago.
+      // Si decides hacerlo aquí (soft-consume):
+      if (cumpleReglasPromo && deseo?.id) {
         try {
           await consumirDeseo(deseo.id, { motivo: "COMPRA_INICIADA" })
-          // Opcional: recargar deseo para reflejar estado
           loadDeseoActivo(user.id)
         } catch (e) {
-          // No cortamos el flujo de pago si falló el consumo aquí
           console.warn("No se pudo consumir el deseo luego del pago:", e)
         }
       }
@@ -334,6 +334,7 @@ export default function CartPage() {
     }
   }
 
+  // ===== Render =====
   return (
     <div className="min-h-screen bg-black">
       <div className="max-w-6xl mx-auto p-6">
@@ -347,18 +348,42 @@ export default function CartPage() {
 
         {error && <div className="mb-8 p-4 bg-red-500/20 border border-red-500/50 text-white text-center">{error}</div>}
 
-        {/* Banner del deseo activo */}
+        {/* Banner de promoción */}
         {deseo && (
           <div className="mb-6 p-4 bg-emerald-500/15 border border-emerald-400/40 text-white">
             <div className="flex items-center gap-3">
               {isEnvioGratis ? <Truck className="w-5 h-5" /> : <TicketPercent className="w-5 h-5" />}
               <div className="font-bold uppercase">
-                {isEnvioGratis ? "Promoción activa: Envío gratis" : `Promoción activa: Descuento ${promoPct}%`}
+                {cumpleReglasPromo
+                  ? isEnvioGratis
+                    ? "Promoción activa: Envío gratis"
+                    : `Promoción activa: Descuento ${promoPct}%`
+                  : "Tienes una promoción disponible"}
               </div>
             </div>
+
             {deseo.promocion?.expiraEl && (
               <div className="text-white/70 text-sm mt-1">
                 Vence: {new Date(deseo.promocion.expiraEl).toLocaleString()}
+              </div>
+            )}
+
+            {!cumpleReglasPromo && (
+              <div className="text-amber-200/80 mt-2 text-sm">
+                {(() => {
+                  const p = deseo.promocion
+                  if (!p?.activo) return "La promoción está inactiva."
+                  if (p.expiraEl && Date.now() > new Date(p.expiraEl).getTime()) return "La promoción ha expirado."
+                  const min = Number(p?.metadata?.minCompra ?? 0)
+                  if (min > 0 && totalProductos < min) {
+                    const faltan = (min - totalProductos).toFixed(2)
+                    return `Agrega Q${faltan} más en productos para activar la promoción.`
+                  }
+                  const max = Number(p.usosMaximos ?? 1)
+                  const usados = Number(deseo.usosRealizados ?? 0)
+                  if (usados >= max) return "La promoción alcanzó su límite de uso."
+                  return "La promoción no cumple las condiciones aún."
+                })()}
               </div>
             )}
           </div>
@@ -389,17 +414,11 @@ export default function CartPage() {
           <>
             <div className="space-y-4 mb-8">
               {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white/10 border border-white/20 p-6 hover:bg-white/[0.15] transition-colors"
-                >
+                <div key={item.id} className="bg-white/10 border border-white/20 p-6 hover:bg-white/[0.15] transition-colors">
                   <div className="flex items-center gap-6">
                     <div className="w-24 h-24 bg-white/5 border border-white/20 overflow-hidden">
                       <img
-                        src={
-                          item.producto?.productoColor?.imagenUrl ||
-                          "/placeholder.svg?height=96&width=96&query=sports+product"
-                        }
+                        src={item.producto?.productoColor?.imagenUrl || "/placeholder.svg?height=96&width=96&query=sports+product"}
                         alt={item.producto?.nombre || "Producto"}
                         className="w-full h-full object-cover"
                       />
@@ -417,8 +436,7 @@ export default function CartPage() {
                           </span>
                         </span>
                         <span>
-                          TALLA:{" "}
-                          <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
+                          TALLA: <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
                         </span>
                       </div>
                     </div>
@@ -471,8 +489,7 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Info de promoción aplicada a productos */}
-              {isDescFijo && (
+              {isDescPorc && (
                 <div className="mb-4 text-emerald-300">
                   Descuento aplicado a productos: <strong>{promoPct}%</strong> — Nuevo subtotal:{" "}
                   <strong>Q{totalProductosConDescuento.toFixed(2)}</strong>
@@ -533,10 +550,10 @@ export default function CartPage() {
                     !quote
                       ? "Calcula el envío para habilitar el pago"
                       : !isNitValid(nit)
-                        ? "Ingrese un NIT válido (o CF)"
-                        : !coords.destination
-                          ? "Seleccione un destino en el mapa"
-                          : "Proceder al Pago"
+                      ? "Ingrese un NIT válido (o CF)"
+                      : !coords.destination
+                      ? "Seleccione un destino en el mapa"
+                      : "Proceder al Pago"
                   }
                 >
                   {paying ? "Redirigiendo a Stripe..." : quote ? `Pagar Q${totalConEnvio}` : "Proceder al Pago"}
@@ -592,9 +609,7 @@ export default function CartPage() {
                   )}
 
                   <details className="mt-4">
-                    <summary className="cursor-pointer text-white hover:text-white/80">
-                      Ver desglose por artículo
-                    </summary>
+                    <summary className="cursor-pointer text-white hover:text-white/80">Ver desglose por artículo</summary>
                     <div className="mt-3 space-y-2">
                       {Array.isArray(quote.detalle) &&
                         quote.detalle.map((d, i) => (
@@ -635,7 +650,7 @@ export default function CartPage() {
 
                   <div className="mt-4 text-right">
                     <div className="text-white/60">
-                      Total productos {isDescFijo ? "(con descuento)" : ""}: Q{totalProductosConDescuento.toFixed(2)}
+                      Total productos {isDescPorc ? "(con descuento)" : ""}: Q{totalProductosConDescuento.toFixed(2)}
                     </div>
                     <div className="text-xl font-bold text-white">Total a pagar aprox.: Q{totalConEnvio}</div>
                   </div>

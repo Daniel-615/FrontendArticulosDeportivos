@@ -34,13 +34,9 @@ export const getDeseosUsuario = async (usuario_id, params = {}) => {
   try {
     const response = await axios.get(
       `${API_GATEWAY}deseo/usuarios/${usuario_id}/deseos`,
-      {
-        withCredentials: true,
-        params, 
-      }
+      { withCredentials: true, params }
     );
-    console.log(response.data)
-    return ok(response.data);
+    return ok(response.data.data || []); 
   } catch (err) {
     return fail(err, "Error al obtener los deseos del usuario");
   }

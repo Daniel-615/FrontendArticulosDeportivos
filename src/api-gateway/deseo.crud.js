@@ -39,6 +39,7 @@ export const getDeseosUsuario = async (usuario_id, params = {}) => {
         params, 
       }
     );
+    console.log(response.data)
     return ok(response.data);
   } catch (err) {
     return fail(err, "Error al obtener los deseos del usuario");
@@ -64,6 +65,7 @@ export const consumirDeseo = async (deseo_id, payload = {}) => {
       payload,
       { withCredentials: true }
     );
+    console.log(response.data)
     return ok(response.data);
   } catch (err) {
     return fail(err, "Error al consumir el deseo");

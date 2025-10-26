@@ -80,8 +80,10 @@ export const updateProductoColor = async (id, payload) => {
     const { data } = await axios.put(`${BASE}/${id}`, form, {
       withCredentials: true,
     });
+    console.log(data)
     return { success: true, data };
   } catch (error) {
+    console.log(error)
     if (error.response) {
       return {
         success: false,

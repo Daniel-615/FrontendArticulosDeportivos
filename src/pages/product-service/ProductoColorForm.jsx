@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
   createProductoColor,
@@ -23,7 +21,7 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
   const [imagenPreview, setImagenPreview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
-  const [fieldErrors, setFieldErrors] = useState({}) // 👈 Errores por campo
+  const [fieldErrors, setFieldErrors] = useState({})
   const [productoColores, setProductoColores] = useState([])
   const [nombreProductoActual, setNombreProductoActual] = useState("")
 

@@ -46,8 +46,6 @@ export const getProductoId = async (id) => {
 };
 
 export const updateProducto = async (id, producto) => {
-  console.log(id);
-  console.log(producto);
   try {
     const response = await axios.put(
       `${API_GATEWAY}product/${id}`,

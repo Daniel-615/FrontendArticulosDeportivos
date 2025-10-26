@@ -18,14 +18,6 @@ export const pay = async ({
 
   const base = API_GATEWAY?.endsWith("/") ? API_GATEWAY.slice(0, -1) : API_GATEWAY;
 
-  console.log("[pay] payload =>", {
-    userId,
-    nit,
-    items_len: items.length,
-    direccion_destino,
-    costo_envio,
-    fecha_estimada,
-  });
 
   const { data } = await axios.post(
     `${base}/stripe/checkout`,

@@ -19,7 +19,6 @@ export const addToCart = async (data) => {
     const { data: resData, status } = await axios.post(`${base}cart/`, data, {
       withCredentials: true,
     });
-    console.log(data)
     return { success: true, data: resData?.data ?? resData, status };
   } catch (err) {
     const { status, message } = parseError(err);
@@ -33,7 +32,6 @@ export const getCartByUser = async (userId) => {
     const { data, status } = await axios.get(`${base}cart/${userId}`, {
       withCredentials: true,
     });
-    console.log(data)
     return { success: true, data: data?.data ?? data, status };
   } catch (err) {
     const { status, message } = parseError(err);

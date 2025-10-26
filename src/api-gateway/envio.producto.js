@@ -31,7 +31,6 @@ export const getEnvioProductosByEnvioId = async (id_envio) => {
       `${API_GATEWAY}envio_producto/envio/${encodeURIComponent(id_envio)}`,
       { withCredentials: true }
     );
-    console.log(res.data)
     return ok(res.data);
   } catch (err) {
     return fail(err, "Error al obtener los productos del envío");
@@ -45,7 +44,6 @@ export const getEnvioProductoById = async (id_envio_producto) => {
       `${API_GATEWAY}envio_producto/${encodeURIComponent(id_envio_producto)}`,
       { withCredentials: true }
     );
-    console.log(res.data);
     return ok(res.data);
   } catch (err) {
     return fail(err, "Error al obtener el envio_producto");

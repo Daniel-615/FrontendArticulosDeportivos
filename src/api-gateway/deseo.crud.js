@@ -61,7 +61,6 @@ export const consumirDeseo = async (deseo_id, payload = {}) => {
       payload,
       { withCredentials: true }
     );
-    console.log(response.data)
     return ok(response.data);
   } catch (err) {
     return fail(err, "Error al consumir el deseo");

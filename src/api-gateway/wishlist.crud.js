@@ -28,7 +28,6 @@ export const getWishlistByUser = async (userId) => {
     const { data, status } = await axios.get(`${base}wishlist/${userId}`, {
       withCredentials: true,
     });
-    console.log(data)
     return { success: true, data, status };
   } catch (e) {
     return { success: false, error: pickMsg(e), status: e?.response?.status };

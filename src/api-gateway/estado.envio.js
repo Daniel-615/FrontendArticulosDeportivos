@@ -20,7 +20,6 @@ export const getEstadoEnvios= async()=>{
                 withCredentials: true
             }
         )
-        console.log(res.data)
         return ok(res.data);
     }catch(err){
         return fail(err,"Error al obtener los estados de los envios")
@@ -34,7 +33,6 @@ export const getEstadosOfEnvio= async(id_envio)=>{
                 withCredentials: true
             }
         );
-        console.log(res.data);
         return ok(res.data);
     }catch(err){
         return fail(err,"Error al obtener los estados de un envio")

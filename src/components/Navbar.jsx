@@ -269,6 +269,19 @@ function Navbar() {
                         <span>PANEL</span>
                       </NavLink>
                     </li>
+                     <li>
+                      <NavLink
+                        to="/promocion"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <Users size={16} />
+                        <span>PROMOCION</span>
+                      </NavLink>
+                    </li>
                   </>
                 )}
 

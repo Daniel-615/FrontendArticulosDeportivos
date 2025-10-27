@@ -1,5 +1,3 @@
-"use client"
-
 import { useAuth } from "../../../context/AuthContext.jsx"
 import { useEffect, useState } from "react"
 import { getProductos } from "../../../api-gateway/producto.crud.js"
@@ -202,7 +200,7 @@ function HomePage() {
                 <Truck className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-bold text-lg mb-2 text-black">ENVÍO GRATIS</h3>
-              <p className="text-gray-600">En compras mayores a $50</p>
+              <p className="text-gray-600">Cumple tu deseo y obtendrás el ansiado premio</p>
             </motion.div>
 
             <motion.div

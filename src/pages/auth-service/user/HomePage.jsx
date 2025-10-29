@@ -43,7 +43,7 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Hero Section - Adidas-inspired bold hero */}
       <section className="relative h-[400px] sm:h-[500px] md:h-[600px] bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
@@ -256,7 +256,7 @@ function HomePage() {
       <section className="relative h-64 sm:h-80 md:h-96 bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/30 z-10"></div>
         <img
-          src="/sports-equipment-gym-weights-athletic-gear.jpg"
+          src="Mechi.webp"
           alt="CTA Banner"
           className="absolute inset-0 w-full h-full object-cover"
         />

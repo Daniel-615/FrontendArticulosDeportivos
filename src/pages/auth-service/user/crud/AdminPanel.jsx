@@ -70,7 +70,7 @@ function AdminPanel() {
   const ocultarDetalles = () => setDetalleUsuario(null)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white overflow-x-hidden">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
         <div className="mb-8 sm:mb-12">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-3">
@@ -159,7 +159,7 @@ function AdminPanel() {
         )}
 
         <div className="bg-white border-2 border-black shadow-xl overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-black scrollbar-track-gray-200">
             <table className="w-full min-w-[800px]">
               <thead className="bg-black text-white">
                 <tr>
@@ -232,6 +232,7 @@ function AdminPanel() {
               </tbody>
             </table>
           </div>
+          <div className="lg:hidden bg-gray-100 p-2 text-center text-xs text-gray-600">← Desliza para ver más →</div>
         </div>
 
         {detalleUsuario && (

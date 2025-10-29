@@ -74,7 +74,7 @@ function HomePage() {
               siguiente nivel.
             </p>
             <button
-              onClick={() => navigate("/productos")}
+              onClick={() => navigate("/producto")}
               className="group bg-white text-black px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg hover:bg-gray-100 transition-colors flex items-center gap-2"
             >
               EXPLORAR PRODUCTOS
@@ -93,7 +93,7 @@ function HomePage() {
               <p className="text-gray-600 text-base sm:text-lg">Lo mejor de nuestra colección</p>
             </div>
             <button
-              onClick={() => navigate("/productos")}
+              onClick={() => navigate("/wishlist")}
               className="hidden md:flex items-center gap-2 text-black font-bold hover:gap-4 transition-all"
             >
               VER TODO
@@ -115,7 +115,7 @@ function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  onClick={() => navigate("/productos")}
+                  onClick={() => navigate("/producto")}
                   className="group cursor-pointer"
                 >
                   <div className="relative bg-gray-50 mb-4 overflow-hidden aspect-square">
@@ -137,7 +137,7 @@ function HomePage() {
           )}
 
           <button
-            onClick={() => navigate("/productos")}
+            onClick={() => navigate("/producto")}
             className="md:hidden flex items-center gap-2 text-black font-bold mx-auto mt-8 hover:gap-4 transition-all"
           >
             VER TODO

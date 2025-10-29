@@ -16,6 +16,16 @@ body {
 
 /* Custom scrollbar styles for better UX */
 @layer utilities {
+  /* Added scrollbar-hide utility for navbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;

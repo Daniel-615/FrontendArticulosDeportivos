@@ -1,3 +1,5 @@
+"use client"
+
 import { useAuth } from "../../../context/AuthContext.jsx"
 import { useEffect, useState } from "react"
 import { getProductos } from "../../../api-gateway/producto.crud.js"
@@ -43,14 +45,14 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - Adidas-inspired bold hero */}
-      <section className="relative h-[600px] bg-black overflow-hidden">
+      <section className="relative h-[400px] sm:h-[500px] md:h-[600px] bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
         <img
-          src="adidas.avif"
+          src="FONDO SUPREME.webp"
           alt="Hero"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="relative z-20 container mx-auto px-6 h-full flex items-center">
+        <div className="relative z-20 container mx-auto px-4 sm:px-6 h-full flex items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -58,40 +60,40 @@ function HomePage() {
             className="max-w-2xl"
           >
             {user && (
-              <p className="text-white/90 text-sm font-medium mb-2 tracking-wider uppercase">
+              <p className="text-white/90 text-xs sm:text-sm font-medium mb-2 tracking-wider uppercase">
                 Bienvenido, {user.nombre}
               </p>
             )}
-            <h1 className="text-6xl md:text-7xl font-black text-white mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-4 sm:mb-6 leading-tight">
               TU ENERGÍA
               <br />
               COMIENZA AQUÍ
             </h1>
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-6 sm:mb-8 leading-relaxed">
               Descubre la colección más innovadora de artículos deportivos diseñados para llevar tu rendimiento al
               siguiente nivel.
             </p>
             <button
-              onClick={() => navigate("/producto")}
-              className="group bg-white text-black px-8 py-4 font-bold text-lg hover:bg-gray-100 transition-colors flex items-center gap-2"
+              onClick={() => navigate("/productos")}
+              className="group bg-white text-black px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg hover:bg-gray-100 transition-colors flex items-center gap-2"
             >
               EXPLORAR PRODUCTOS
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
         </div>
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="flex justify-between items-end mb-12">
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-12 gap-4">
             <div>
-              <h2 className="text-4xl md:text-5xl font-black text-black mb-2">PRODUCTOS DESTACADOS</h2>
-              <p className="text-gray-600 text-lg">Lo mejor de nuestra colección</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-black mb-2">PRODUCTOS DESTACADOS</h2>
+              <p className="text-gray-600 text-base sm:text-lg">Lo mejor de nuestra colección</p>
             </div>
             <button
-              onClick={() => navigate("/wishlist")}
+              onClick={() => navigate("/productos")}
               className="hidden md:flex items-center gap-2 text-black font-bold hover:gap-4 transition-all"
             >
               VER TODO
@@ -100,13 +102,13 @@ function HomePage() {
           </div>
 
           {loadingData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-gray-100 h-96 animate-pulse"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {productos.map((producto, index) => (
                 <motion.div
                   key={producto.id}
@@ -135,7 +137,7 @@ function HomePage() {
           )}
 
           <button
-            onClick={() => navigate("/producto")}
+            onClick={() => navigate("/productos")}
             className="md:hidden flex items-center gap-2 text-black font-bold mx-auto mt-8 hover:gap-4 transition-all"
           >
             VER TODO
@@ -145,25 +147,27 @@ function HomePage() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl font-black text-black mb-12 text-center">COMPRA POR CATEGORÍA</h2>
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-black mb-8 sm:mb-12 text-center">
+            COMPRA POR CATEGORÍA
+          </h2>
 
           {loadingData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-gray-200 h-80 animate-pulse"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {categorias.map((categoria, index) => (
                 <motion.div
                   key={categoria.id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                  onClick={() => navigate("/producto")}
+                  onClick={() => navigate("/productos")}
                   className="group relative h-80 overflow-hidden cursor-pointer bg-black"
                 >
                   <img
@@ -187,9 +191,9 @@ function HomePage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -200,7 +204,7 @@ function HomePage() {
                 <Truck className="w-8 h-8 text-white" />
               </div>
               <h3 className="font-bold text-lg mb-2 text-black">ENVÍO GRATIS</h3>
-              <p className="text-gray-600">Cumple tu deseo y obtendrás el ansiado premio</p>
+              <p className="text-gray-600">En compras mayores a $50</p>
             </motion.div>
 
             <motion.div
@@ -249,26 +253,28 @@ function HomePage() {
       </section>
 
       {/* CTA Banner Section */}
-      <section className="relative h-96 bg-black overflow-hidden">
+      <section className="relative h-64 sm:h-80 md:h-96 bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/30 z-10"></div>
         <img
-          src="Mechi.webp"
+          src="/sports-equipment-gym-weights-athletic-gear.jpg"
           alt="CTA Banner"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="relative z-20 container mx-auto px-6 h-full flex items-center justify-center text-center">
+        <div className="relative z-20 container mx-auto px-4 sm:px-6 h-full flex items-center justify-center text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-5xl md:text-6xl font-black text-white mb-6">¿LISTO PARA EMPEZAR?</h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 sm:mb-6">
+              ¿LISTO PARA EMPEZAR?
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
               Únete a miles de atletas que confían en nosotros para alcanzar sus metas
             </p>
             <button
               onClick={() => navigate("/carrito")}
-              className="bg-white text-black px-10 py-4 font-black text-lg hover:bg-gray-100 transition-colors"
+              className="bg-white text-black px-8 sm:px-10 py-3 sm:py-4 font-black text-base sm:text-lg hover:bg-gray-100 transition-colors"
             >
               COMPRAR AHORA
             </button>

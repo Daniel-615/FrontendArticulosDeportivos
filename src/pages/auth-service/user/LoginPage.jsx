@@ -45,7 +45,7 @@ function LoginPage() {
       {/* Left side - Image */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <img
-          src="inter.jpeg"
+          src="Gokuchiquito.avif"
           alt="Athletic sports"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -57,14 +57,14 @@ function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-black text-white mb-2 tracking-tight">FITZONE</h1>
-            <p className="text-white/60 text-sm tracking-wider uppercase">Inicia sesión</p>
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 tracking-tight">FITZONE</h1>
+            <p className="text-white/60 text-xs sm:text-sm tracking-wider uppercase">Inicia sesión</p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm p-8 border border-white/20">
+          <div className="bg-white/10 backdrop-blur-sm p-6 sm:p-8 border border-white/20">
             {serverMessage && (
               <div className="bg-red-500/20 border border-red-500/50 p-3 text-white mb-4 text-center text-sm">
                 {serverMessage}
@@ -113,13 +113,13 @@ function LoginPage() {
               </button>
 
               <div className="text-center pt-4 space-y-2">
-                <p className="text-white/60 text-sm">
+                <p className="text-white/60 text-xs sm:text-sm">
                   ¿No tienes una cuenta?{" "}
                   <Link to="/register" className="text-white hover:underline font-medium">
                     Regístrate
                   </Link>
                 </p>
-                <p className="text-white/60 text-sm">
+                <p className="text-white/60 text-xs sm:text-sm">
                   <Link to="/forgot-password" className="text-white/60 hover:text-white transition-colors">
                     ¿Olvidaste tu contraseña?
                   </Link>

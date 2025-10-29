@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useEffect, useMemo, useState } from "react"
 import { getEnvios, putEnvioGuia } from "../../api-gateway/envio.js"
 import { getEstadosOfEnvio, putEstadoEnvio } from "../../api-gateway/estado.envio.js"
@@ -423,29 +425,29 @@ export default function EnviosManager() {
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight">GESTIÓN DE ENVÍOS</h1>
-            <p className="text-sm text-white/60 mt-1 tracking-wide">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">GESTIÓN DE ENVÍOS</h1>
+            <p className="text-xs sm:text-sm text-white/60 mt-1 tracking-wide">
               Consulta y actualiza la <span className="text-white font-bold">fecha estimada</span>, avanza el{" "}
               <span className="text-white font-bold">estado</span> y gestiona los{" "}
               <span className="text-white font-bold">productos</span> del envío.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               value={q}
               onChange={(e) => {
                 setQ(e.target.value)
                 setPage(1)
               }}
-              placeholder="BUSCAR POR GUÍA, USUARIO O DIRECCIÓN..."
-              className="w-72 max-w-full px-4 py-2 border border-white/20 rounded-lg outline-none focus:ring-2 focus:ring-white/40 bg-white/5 text-white placeholder:text-white/40 placeholder:uppercase placeholder:text-xs tracking-wide"
+              placeholder="BUSCAR..."
+              className="w-full sm:w-72 px-3 sm:px-4 py-2 border border-white/20 rounded-lg outline-none focus:ring-2 focus:ring-white/40 bg-white/5 text-white placeholder:text-white/40 placeholder:uppercase placeholder:text-xs tracking-wide"
             />
             <button
               onClick={load}
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-white/5 border border-white/20 hover:bg-white/10 transition-colors font-medium tracking-wide text-sm"
+              className="px-3 sm:px-4 py-2 rounded-lg bg-white/5 border border-white/20 hover:bg-white/10 transition-colors font-medium tracking-wide text-xs sm:text-sm whitespace-nowrap"
             >
               {loading ? "CARGANDO..." : "RECARGAR"}
             </button>
@@ -749,8 +751,8 @@ export default function EnviosManager() {
           </table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-white">
-          <p className="text-sm tracking-wide">
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between text-white gap-3">
+          <p className="text-xs sm:text-sm tracking-wide text-center sm:text-left">
             Mostrando{" "}
             <strong>
               {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filtered.length)}
@@ -761,17 +763,17 @@ export default function EnviosManager() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 disabled:opacity-50 hover:bg-white/10 font-medium tracking-wide text-sm"
+              className="px-2 sm:px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 disabled:opacity-50 hover:bg-white/10 font-medium tracking-wide text-xs sm:text-sm"
             >
               ANTERIOR
             </button>
-            <span className="px-2 py-1 text-sm tracking-wide">
-              PÁGINA {page} / {totalPages}
+            <span className="px-2 py-1 text-xs sm:text-sm tracking-wide">
+              PÁG {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 disabled:opacity-50 hover:bg-white/10 font-medium tracking-wide text-sm"
+              className="px-2 sm:px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 disabled:opacity-50 hover:bg-white/10 font-medium tracking-wide text-xs sm:text-sm"
             >
               SIGUIENTE
             </button>

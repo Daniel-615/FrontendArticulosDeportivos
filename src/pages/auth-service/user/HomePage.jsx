@@ -46,7 +46,7 @@ function HomePage() {
       <section className="relative h-[600px] bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
         <img
-          src="supreme.jpeg"
+          src="adidas.avif"
           alt="Hero"
           className="absolute inset-0 w-full h-full object-cover"
         />

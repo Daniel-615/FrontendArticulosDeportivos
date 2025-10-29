@@ -982,3 +982,4 @@ function ShenronAnimation() {
     </div>
   )
 }
+export default ShenronAnimation;

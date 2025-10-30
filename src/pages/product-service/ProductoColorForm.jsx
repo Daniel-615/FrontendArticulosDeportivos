@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect, useMemo } from "react"
 import {
   createProductoColor,
   updateProductoColor,
@@ -25,17 +27,29 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
   const [productoColores, setProductoColores] = useState([])
   const [nombreProductoActual, setNombreProductoActual] = useState("")
 
+  // 🔹 Paginación interna
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(9) // tarjetas por página
+  const total = productoColores.length
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+
+  const pageItems = useMemo(() => {
+    const start = (page - 1) * limit
+    return productoColores.slice(start, start + limit)
+  }, [productoColores, page, limit])
+
   useEffect(() => {
     async function init() {
       try {
-        const coloresRes = await getColores()
-        if (coloresRes.success) setColores(coloresRes.data)
+        const [coloresRes, productosRes, pcRes] = await Promise.all([
+          getColores(),
+          getProductos({ page: 1, limit: 1000 }), // para tener todos en el <select>
+          getProductoColores(), // trae todo; la paginación es interna
+        ])
 
-        const productosRes = await getProductos()
-        if (productosRes.success) setProductos(productosRes.data.productos || [])
-
-        const pcRes = await getProductoColores()
-        if (pcRes.success) setProductoColores(pcRes.data.data)
+        if (coloresRes.success) setColores(coloresRes.data || [])
+        if (productosRes.success) setProductos(productosRes.data?.productos || [])
+        if (pcRes.success) setProductoColores(pcRes.data?.data || [])
 
         if (initialId) cargarRegistro(initialId)
       } catch (err) {
@@ -43,7 +57,12 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
       }
     }
     init()
-  }, [])
+  }, []) // eslint-disable-line
+
+  // Reinicia a la página 1 si cambia el tamaño de página
+  useEffect(() => {
+    setPage(1)
+  }, [limit, productoColores])
 
   const cargarRegistro = async (pcId) => {
     try {
@@ -55,7 +74,7 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
         setImagenPreview(res.data.imagenUrl || null)
         setImagenFile(null)
 
-        const producto = productos.find((p) => p.id === res.data.data.productoId)
+        const producto = productos.find((p) => p.id === res.data.productoId)
         setNombreProductoActual(producto?.nombre || "")
 
         document.getElementById("productoColorForm")?.scrollIntoView({ behavior: "smooth" })
@@ -69,8 +88,8 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    setImagenFile(file)
-    if (file) setImagenPreview(URL.createObjectURL(file))
+    setImagenFile(file || null)
+    setImagenPreview(file ? URL.createObjectURL(file) : null)
   }
 
   const handleSubmit = async (e) => {
@@ -101,7 +120,7 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
         onSuccess?.()
         resetForm()
         const pcRes = await getProductoColores()
-        if (pcRes.success) setProductoColores(pcRes.data.data)
+        if (pcRes.success) setProductoColores(pcRes.data?.data || [])
       } else {
         setErrorMsg(res.error || "Error al guardar el color del producto.")
       }
@@ -140,6 +159,91 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
     setNombreProductoActual("")
     setErrorMsg("")
     setFieldErrors({})
+  }
+
+  // 🔹 UI de paginación
+  const Pagination = () => {
+    const baseBtn =
+      "inline-flex items-center justify-center h-9 w-9 rounded-md border border-black text-sm leading-none transition-colors"
+    const inactive = "bg-white text-black hover:bg-gray-100"
+    const active = "bg-black text-white"
+    const disabled = "opacity-50 cursor-not-allowed"
+
+    // Crea un rango compacto con elipsis
+    const pages = []
+    const push = (p) => pages.push(p)
+    const show = (p) => p >= 1 && p <= totalPages
+
+    push(1)
+    if (page - 2 > 2) push("left-ellipsis")
+    for (let p = page - 1; p <= page + 1; p++) if (show(p)) push(p)
+    if (page + 2 < totalPages - 1) push("right-ellipsis")
+    if (totalPages > 1) push(totalPages)
+    const cleaned = pages.filter((p, i) => pages.indexOf(p) === i)
+
+    return (
+      <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="text-sm text-gray-700">
+          Mostrando{" "}
+          <span className="font-semibold">{pageItems.length}</span> de{" "}
+          <span className="font-semibold">{total}</span> registros · Página{" "}
+          <span className="font-semibold">{page}</span>/
+          <span className="font-semibold">{totalPages}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1 || loading}
+            aria-label="Página anterior"
+            className={`${baseBtn} ${page === 1 || loading ? disabled : inactive}`}
+          >
+            «
+          </button>
+
+          {cleaned.map((p, i) =>
+            typeof p === "number" ? (
+              <button
+                key={`p-${p}-${i}`}
+                onClick={() => setPage(p)}
+                disabled={loading}
+                aria-label={`Página ${p}`}
+                className={`${baseBtn} ${p === page ? active : inactive}`}
+              >
+                {p}
+              </button>
+            ) : (
+              <span key={p} className="inline-flex items-center justify-center h-9 w-9 text-gray-500 select-none">
+                …
+              </span>
+            )
+          )}
+
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages || loading}
+            aria-label="Página siguiente"
+            className={`${baseBtn} ${page === totalPages || loading ? disabled : inactive}`}
+          >
+            »
+          </button>
+
+          <select
+            value={limit}
+            onChange={(e) => setLimit(parseInt(e.target.value))}
+            disabled={loading}
+            className="ml-2 h-9 px-2 rounded-md border border-black bg-white text-sm"
+            aria-label="Elementos por página"
+          >
+            {[6, 9, 12, 18, 24].map((n) => (
+              <option key={n} value={n}>
+                {n} / pág.
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -258,57 +362,62 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
             </div>
           </form>
 
-          {/* Listado */}
+          {/* Listado con paginación interna */}
           <div>
             <h3 className="font-bold mb-4 text-black text-2xl uppercase">Lista de Colores de Productos</h3>
-            {productoColores.length === 0 ? (
+
+            {total === 0 ? (
               <p className="text-gray-600 text-center py-8 border-2 border-black">No hay registros aún.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {productoColores.map((pc) => (
-                  <div
-                    key={pc.id}
-                    className="bg-white border-2 border-black p-0 hover:border-gray-600 transition-colors overflow-hidden"
-                  >
-                    {/* Imagen del producto */}
-                    <div className="w-full h-48 bg-gray-100 border-b-2 border-black flex items-center justify-center overflow-hidden">
-                      {pc.imagenUrl ? (
-                        <img
-                          src={pc.imagenUrl || "/placeholder.svg"}
-                          alt={pc.nombreProducto}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <ImageIcon className="w-16 h-16 text-gray-400" />
-                      )}
-                    </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pageItems.map((pc) => (
+                    <div
+                      key={pc.id}
+                      className="bg-white border-2 border-black p-0 hover:border-gray-600 transition-colors overflow-hidden"
+                    >
+                      {/* Imagen del producto */}
+                      <div className="w-full h-48 bg-gray-100 border-b-2 border-black flex items-center justify-center overflow-hidden">
+                        {pc.imagenUrl ? (
+                          <img
+                            src={pc.imagenUrl || "/placeholder.svg"}
+                            alt={pc.nombreProducto}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <ImageIcon className="w-16 h-16 text-gray-400" />
+                        )}
+                      </div>
 
-                    {/* Información del producto */}
-                    <div className="p-4">
-                      <h4 className="font-bold uppercase text-sm mb-1 text-black">{pc.nombreProducto}</h4>
-                      <p className="text-gray-600 text-sm mb-4">{pc.nombreColor}</p>
+                      {/* Información del producto */}
+                      <div className="p-4">
+                        <h4 className="font-bold uppercase text-sm mb-1 text-black">{pc.nombreProducto}</h4>
+                        <p className="text-gray-600 text-sm mb-4">{pc.nombreColor}</p>
 
-                      {/* Botones */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => cargarRegistro(pc.id)}
-                          className="flex-1 bg-black text-white py-2 font-bold uppercase text-xs hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => handleDelete(pc.id)}
-                          className="flex-1 bg-white text-black border-2 border-black py-2 font-bold uppercase text-xs hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Eliminar
-                        </button>
+                        {/* Botones */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => cargarRegistro(pc.id)}
+                            className="flex-1 bg-black text-white py-2 font-bold uppercase text-xs hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(pc.id)}
+                            className="flex-1 bg-white text-black border-2 border-black py-2 font-bold uppercase text-xs hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Eliminar
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                <Pagination />
+              </>
             )}
           </div>
         </div>

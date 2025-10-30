@@ -167,7 +167,7 @@ export default function SearchableSelect({
 
       {open && (
         <div
-          className={`absolute z-[9999] ${dropUp ? "bottom-full mb-1" : "mt-1"} w-full bg-white border-2 border-black shadow-lg`}
+          className={`absolute z-[9999] ${dropUp ? "bottom-full mb-1" : "mt-1"} w-full bg-white border-2 border-black shadow-lg text-black`}
           role="listbox"
         >
           {/* buscador */}

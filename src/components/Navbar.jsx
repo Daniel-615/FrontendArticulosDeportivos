@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   BookOpen,
+  TicketPercent,
 } from "lucide-react"
 
 function Navbar() {
@@ -164,7 +165,7 @@ function Navbar() {
                             }
                           >
                             <BookOpen size={16} />
-                            <span>DOCUMENTACIÓN</span>
+                            <span>DOCS</span>
                           </NavLink>
                         </li>
                       </>
@@ -299,7 +300,7 @@ function Navbar() {
                               }`
                             }
                           >
-                            <Users size={16} />
+                            <TicketPercent size={16} />
                             <span>PROM</span>
                           </NavLink>
                         </li>

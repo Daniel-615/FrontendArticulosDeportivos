@@ -1,14 +1,21 @@
-"use client"
 
-import { useEffect, useState } from "react"
-import { getProductos, deleteProducto, updateProducto } from "../../api-gateway/producto.crud.js"
+
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Edit2, Trash2, Package } from "lucide-react"
 import SidebarEmpleado from "../../components/sideBar.jsx"
+import { getProductos, deleteProducto, updateProducto } from "../../api-gateway/producto.crud.js"
 
 export default function ProductosCrudForm() {
   const [productos, setProductos] = useState([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10) 
+  const [loading, setLoading] = useState(false)
   const [editando, setEditando] = useState(null)
+  const [error, setError] = useState(null)
+
+
   const {
     register,
     handleSubmit,
@@ -17,46 +24,161 @@ export default function ProductosCrudForm() {
     formState: { errors },
   } = useForm()
 
-  useEffect(() => {
-    cargarProductos()
-  }, [])
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / limit)), [total, limit])
 
-  const cargarProductos = async () => {
-    const response = await getProductos()
-    console.log(response)
-    if (response.success) {
-      setProductos(response.data.productos)
+  useEffect(() => {
+    cargarProductos(page, limit)
+  }, [page, limit])
+
+  const cargarProductos = async (pageArg = 1, limitArg = limit) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await getProductos({ page: pageArg, limit: limitArg })
+      const payload = response?.data ?? response
+      if (response?.success && payload) {
+        setProductos(payload.productos ?? [])
+        setTotal(Number(payload.total ?? 0))
+        setPage(Number(payload.page ?? pageArg))
+        setLimit(Number(payload.limit ?? limitArg))
+      } else {
+        setProductos([])
+        setTotal(0)
+        setError(payload?.message || "No se pudieron obtener los productos.")
+      }
+    } catch (e) {
+      setError("Error al cargar productos.")
+      setProductos([])
+      setTotal(0)
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este producto?")) {
+    if (!window.confirm("¿Estás seguro de eliminar este producto?")) return
+    try {
       const response = await deleteProducto(id)
-      if (response.success) {
-        cargarProductos()
+      if (response?.success) {
+        const nextPage = productos.length === 1 && page > 1 ? page - 1 : page
+        await cargarProductos(nextPage, limit)
       }
+    } catch {
+      setError("Error al eliminar el producto.")
     }
   }
 
   const handleEdit = (producto) => {
     setEditando(producto.id)
-    setValue("nombre", producto.nombre)
-    setValue("descripcion", producto.descripcion)
-    setValue("precio", Number.parseFloat(producto.precio))
-    setValue("stock", producto.stock)
+    setValue("nombre", producto.nombre ?? "")
+    setValue("descripcion", producto.descripcion ?? "")
+    setValue("precio", producto.precio != null ? Number.parseFloat(producto.precio) : "")
+    setValue("stock", producto.stock != null ? Number.parseInt(producto.stock) : "")
+
+    setValue("peso", producto.peso ?? "")
+    setValue("ancho", producto.ancho ?? "")
+    setValue("alto", producto.alto ?? "")
+    setValue("largo", producto.largo ?? "")
   }
 
   const onSubmit = async (data) => {
-    const response = await updateProducto(editando, {
+    const payload = {
       ...data,
-      precio: Number.parseFloat(data.precio),
-      stock: Number.parseInt(data.stock),
-    })
-    if (response.success) {
-      setEditando(null)
-      reset()
-      cargarProductos()
+      precio: data.precio === "" ? null : Number.parseFloat(data.precio),
+      stock: data.stock === "" ? null : Number.parseInt(data.stock),
+      peso: data.peso === "" ? null : Number.parseFloat(data.peso),
+      ancho: data.ancho === "" ? null : Number.parseFloat(data.ancho),
+      alto: data.alto === "" ? null : Number.parseFloat(data.alto),
+      largo: data.largo === "" ? null : Number.parseFloat(data.largo),
     }
+
+    try {
+      const response = await updateProducto(editando, payload)
+      if (response?.success) {
+        setEditando(null)
+        reset()
+        cargarProductos(page, limit) 
+      }
+    } catch {
+      setError("Error al actualizar el producto.")
+    }
+  }
+
+  const Pagination = () => {
+    const pages = []
+    const show = (p) => p >= 1 && p <= totalPages
+    const push = (p) => pages.push(p)
+
+    push(1)
+    if (page - 2 > 2) push("left-ellipsis")
+    for (let p = page - 1; p <= page + 1; p++) if (show(p)) push(p)
+    if (page + 2 < totalPages - 1) push("right-ellipsis")
+    if (totalPages > 1) push(totalPages)
+
+    const cleaned = pages.filter((p, idx) => pages.indexOf(p) === idx)
+
+    return (
+      <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="text-sm text-gray-700">
+          Mostrando <span className="font-semibold">{productos.length}</span> de{" "}
+          <span className="font-semibold">{total}</span> productos · Página{" "}
+          <span className="font-semibold">{page}</span>/<span className="font-semibold">{totalPages}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1 || loading}
+            className="px-3 py-2 border-2 border-black disabled:opacity-40 hover:bg-gray-100"
+          >
+            Anterior
+          </button>
+
+          {cleaned.map((p, i) =>
+            typeof p === "number" ? (
+              <button
+                key={`p-${p}-${i}`}
+                onClick={() => setPage(p)}
+                disabled={loading}
+                className={`px-3 py-2 border-2 ${
+                  p === page ? "bg-black text-white border-black" : "border-black hover:bg-gray-100"
+                }`}
+              >
+                {p}
+              </button>
+            ) : (
+              <span key={p} className="px-2">
+                …
+              </span>
+            )
+          )}
+
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages || loading}
+            className="px-3 py-2 border-2 border-black disabled:opacity-40 hover:bg-gray-100"
+          >
+            Siguiente
+          </button>
+
+          <select
+            value={limit}
+            onChange={(e) => {
+              setPage(1)
+              setLimit(parseInt(e.target.value))
+            }}
+            disabled={loading}
+            className="ml-2 px-2 py-2 border-2 border-black bg-white"
+          >
+            {[6, 10, 12, 18, 24].map((n) => (
+              <option key={n} value={n}>
+                {n} / pág.
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -71,6 +193,14 @@ export default function ProductosCrudForm() {
           <div className="h-1 w-20 bg-black"></div>
         </div>
 
+        {/* Estado / errores */}
+        {loading && <div className="mb-4 text-gray-600">Cargando productos…</div>}
+        {error && <div className="mb-4 text-red-600 font-medium">{error}</div>}
+        {!loading && !error && productos.length === 0 && (
+          <div className="mb-4 text-gray-600">No hay productos para mostrar.</div>
+        )}
+
+        {/* Grid de productos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {productos.map((prod) => (
             <div key={prod.id} className="bg-white border-2 border-black p-6 hover:border-gray-600 transition-colors">
@@ -84,12 +214,15 @@ export default function ProductosCrudForm() {
 
               <div className="space-y-2 mb-4 text-sm">
                 <p className="font-bold text-black">PRECIO: Q{Number(prod.precio).toFixed(2)}</p>
-                <p className="text-gray-700">Peso: {prod.peso} kg</p>
-                <p className="text-gray-700">
-                  Dimensiones: {prod.ancho} x {prod.alto} x {prod.largo} cm
-                </p>
+                {prod.peso != null && prod.peso !== "" && <p className="text-gray-700">Peso: {prod.peso} kg</p>}
+                {(prod.ancho != null || prod.alto != null || prod.largo != null) && (
+                  <p className="text-gray-700">
+                    Dimensiones: {prod.ancho ?? "-"} x {prod.alto ?? "-"} x {prod.largo ?? "-"} cm
+                  </p>
+                )}
                 <p className="text-gray-700">Marca: {prod.marca?.nombre || "Sin marca"}</p>
                 <p className="text-gray-700">Categoría: {prod.categoria?.nombre || "Sin categoría"}</p>
+                {prod.stock != null && <p className="text-gray-700">Stock: {prod.stock}</p>}
               </div>
 
               <div className="flex gap-2">
@@ -112,8 +245,12 @@ export default function ProductosCrudForm() {
           ))}
         </div>
 
+        {/* Paginación */}
+        <Pagination />
+
+        {/* Formulario de edición */}
         {editando && (
-          <div className="bg-black text-white p-8 border-4 border-black">
+          <div className="bg-black text-white p-8 border-4 border-black mt-8">
             <h3 className="text-2xl font-bold uppercase mb-6">Editar Producto</h3>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
@@ -129,8 +266,8 @@ export default function ProductosCrudForm() {
               <div>
                 <label className="block text-sm font-bold uppercase mb-2">Descripción</label>
                 <textarea
-                  {...register("descripcion", { required: "Descripción requerida" })}
                   rows="3"
+                  {...register("descripcion", { required: "Descripción requerida" })}
                   className="w-full bg-white text-black border-2 border-white px-4 py-3 focus:outline-none"
                 />
                 {errors.descripcion && (
@@ -138,9 +275,9 @@ export default function ProductosCrudForm() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold uppercase mb-2">Precio</label>
+                  <label className="block text-sm font-bold uppercase mb-2">Precio (Q)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -151,7 +288,17 @@ export default function ProductosCrudForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold uppercase mb-2">Peso</label>
+                  <label className="block text-sm font-bold uppercase mb-2">Stock</label>
+                  <input
+                    type="number"
+                    {...register("stock", { required: "Stock requerido", min: { value: 0, message: "Mínimo 0" } })}
+                    className="w-full bg-white text-black border-2 border-white px-4 py-3 focus:outline-none"
+                  />
+                  {errors.stock && <span className="text-red-400 text-sm font-medium">{errors.stock.message}</span>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold uppercase mb-2">Peso (kg)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -161,7 +308,7 @@ export default function ProductosCrudForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold uppercase mb-2">Ancho</label>
+                  <label className="block text-sm font-bold uppercase mb-2">Ancho (cm)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -171,7 +318,7 @@ export default function ProductosCrudForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold uppercase mb-2">Alto</label>
+                  <label className="block text-sm font-bold uppercase mb-2">Alto (cm)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -181,7 +328,7 @@ export default function ProductosCrudForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold uppercase mb-2">Largo</label>
+                  <label className="block text-sm font-bold uppercase mb-2">Largo (cm)</label>
                   <input
                     type="number"
                     step="0.01"

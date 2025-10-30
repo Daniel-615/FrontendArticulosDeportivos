@@ -24,7 +24,10 @@ export const getProductos = async () => {
   try {
     const response = await axios.get(
       `${API_GATEWAY}product`,
-      { withCredentials: true }
+      { withCredentials: true ,
+        params: { page, limit },
+      },
+      
     );
     return { success: true, data: response.data };
   } catch (error) {

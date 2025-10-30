@@ -62,8 +62,9 @@ function Navbar() {
           </div>
 
           {/* NAV DESKTOP: scroll horizontal si no caben todas las rutas */}
-          <div className="hidden lg:block flex-1 overflow-x-auto">
-            <ul className="flex items-center justify-end space-x-1 whitespace-nowrap pr-2">
+          <div className="hidden lg:flex flex-1">
+            <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full">
+              <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
               {!isAuthenticated && (
                 <>
                   <li>
@@ -316,7 +317,9 @@ function Navbar() {
                   </li>
                 </>
               )}
+              
             </ul>
+          </div>
           </div>
 
           {/* TOGGLE MÓVIL */}

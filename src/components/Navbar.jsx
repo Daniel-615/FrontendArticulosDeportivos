@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
@@ -19,6 +17,7 @@ import {
   BarChart3,
   Menu,
   X,
+  BookOpen, // 👈 nuevo icono
 } from "lucide-react"
 
 function Navbar() {
@@ -61,6 +60,7 @@ function Navbar() {
             </NavLink>
           </div>
 
+          {/* NAV DESKTOP */}
           <ul className="hidden lg:flex items-center space-x-1">
             {!isAuthenticated && (
               <>
@@ -147,6 +147,21 @@ function Navbar() {
                       >
                         <BarChart3 size={16} />
                         <span>DASHBOARD</span>
+                      </NavLink>
+                    </li>
+
+                    {/* DOCUMENTACIÓN (admin) */}
+                    <li>
+                      <NavLink
+                        to="/documentation"
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-purple-500/10" : ""
+                          }`
+                        }
+                      >
+                        <BookOpen size={16} />
+                        <span>DOCUMENTACIÓN</span>
                       </NavLink>
                     </li>
                   </>
@@ -301,6 +316,7 @@ function Navbar() {
             )}
           </ul>
 
+          {/* TOGGLE MÓVIL */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="lg:hidden p-2 text-white hover:bg-white/5 transition-colors"
@@ -310,6 +326,7 @@ function Navbar() {
           </button>
         </div>
 
+        {/* MENÚ MÓVIL */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-white/10 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <ul className="space-y-1">
@@ -404,6 +421,22 @@ function Navbar() {
                         >
                           <BarChart3 size={16} />
                           <span>DASHBOARD</span>
+                        </NavLink>
+                      </li>
+
+                      {/* DOCUMENTACIÓN (admin) en móvil */}
+                      <li>
+                        <NavLink
+                          to="/documentation"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-purple-500/10" : ""
+                            }`
+                          }
+                        >
+                          <BookOpen size={16} />
+                          <span>DOCUMENTACIÓN</span>
                         </NavLink>
                       </li>
                     </>

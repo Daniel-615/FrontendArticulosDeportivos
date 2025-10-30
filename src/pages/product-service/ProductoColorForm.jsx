@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useMemo } from "react"
 import {
   createProductoColor,
@@ -12,6 +10,7 @@ import { getColores } from "../../api-gateway/color.crud.js"
 import { getProductos } from "../../api-gateway/producto.crud.js"
 import { ImageIcon, Edit2, Trash2 } from "lucide-react"
 import SidebarEmpleado from "../../components/sideBar.jsx"
+import SearchableSelect from "../../components/searchableSelect.jsx"
 
 export default function ProductoColorForm({ id: initialId, onSuccess }) {
   const [id, setId] = useState(initialId || null)
@@ -271,21 +270,15 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
               <div className="grid gap-6 md:grid-cols-2 mb-6">
                 <div>
                   <label className="block mb-2 font-bold uppercase text-sm">Seleccionar producto *</label>
-                  <select
-                    value={productoId}
-                    onChange={(e) => setProductoId(e.target.value)}
+                  <SearchableSelect
+                    label="Seleccionar producto"
                     required
-                    className={`w-full p-3 bg-white text-black border-2 border-white focus:outline-none ${
-                      fieldErrors.productoId ? "border-red-500" : ""
-                    }`}
-                  >
-                    <option value="">-- SELECCIONA UN PRODUCTO --</option>
-                    {productos.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="SELECCIONA UN PRODUCTO"
+                    value={productoId}
+                    onChange={(v) => setProductoId(v)}
+                    options={productos.map((p) => ({ value: p.id, label: p.nombre }))}
+                    error={fieldErrors.productoId}
+                  />
                   {fieldErrors.productoId && (
                     <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.productoId}</p>
                   )}
@@ -293,21 +286,15 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
 
                 <div>
                   <label className="block mb-2 font-bold uppercase text-sm">Seleccionar color *</label>
-                  <select
-                    value={colorId}
-                    onChange={(e) => setColorId(e.target.value)}
+                  <SearchableSelect
+                    label="Seleccionar color"
                     required
-                    className={`w-full p-3 bg-white text-black border-2 border-white focus:outline-none ${
-                      fieldErrors.colorId ? "border-red-500" : ""
-                    }`}
-                  >
-                    <option value="">-- SELECCIONA UN COLOR --</option>
-                    {colores.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="SELECCIONA UN COLOR"
+                    value={colorId}
+                    onChange={(v) => setColorId(v)}
+                    options={colores.map((c) => ({ value: c.id, label: c.nombre }))}
+                    error={fieldErrors.colorId}
+                  />
                   {fieldErrors.colorId && (
                     <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.colorId}</p>
                   )}

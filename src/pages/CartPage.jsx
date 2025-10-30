@@ -675,7 +675,7 @@ export default function CartPage() {
                   )}
 
                   <details className="mt-4">
-                    <summary className="cursor-pointer text-white hover:text-white/80 text-xs sm:text-sm sm:text-base">
+                    <summary className="cursor-pointer text-white hover:text-white/80 text-xs sm:text-sm ">
                       Ver desglose por artículo
                     </summary>
                     <div className="mt-3 space-y-2">
@@ -717,10 +717,10 @@ export default function CartPage() {
                   </div>
 
                   <div className="mt-4 text-right">
-                    <div className="text-white/60 text-xs sm:text-sm sm:text-base">
+                    <div className="text-white/60 text-xs sm:text-base">
                       Total productos {isDescPorc ? "(con descuento)" : ""}: Q{totalProductosConDescuento.toFixed(2)}
                     </div>
-                    <div className="text-base sm:text-lg sm:text-xl font-bold text-white">
+                    <div className="text-base sm:text-lg font-bold text-white">
                       Total a pagar aprox.: Q{totalConEnvio}
                     </div>
                   </div>

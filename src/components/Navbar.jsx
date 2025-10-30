@@ -17,7 +17,7 @@ import {
   BarChart3,
   Menu,
   X,
-  BookOpen, // 👈 nuevo icono
+  BookOpen, 
 } from "lucide-react"
 
 function Navbar() {

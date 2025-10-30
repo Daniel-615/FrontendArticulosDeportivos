@@ -62,264 +62,264 @@ function Navbar() {
           </div>
 
           {/* NAV DESKTOP: scroll horizontal si no caben todas las rutas */}
-          <div className="hidden lg:flex flex-1">
-            <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full">
-              <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
-              {!isAuthenticated && (
-                <>
-                  <li>
-                    <NavLink
-                      to="/login"
-                      className={({ isActive }) =>
-                        `px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                          isActive ? "text-white bg-white/5" : ""
-                        }`
-                      }
-                    >
-                      INICIAR SESIÓN
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink
-                      to="/register"
-                      className={({ isActive }) =>
-                        `px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide ${
-                          isActive ? "bg-white/90" : ""
-                        }`
-                      }
-                    >
-                      REGISTRARSE
-                    </NavLink>
-                  </li>
-                </>
-              )}
-
-              {isAuthenticated && (
-                <>
-                  <li>
-                    <NavLink
-                      to="/"
-                      end
-                      className={({ isActive }) =>
-                        `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                          isActive ? "text-white bg-white/5" : ""
-                        }`
-                      }
-                    >
-                      <Home size={16} />
-                      <span>INICIO</span>
-                    </NavLink>
-                  </li>
-
-                  {Array.isArray(user?.rol) && user.rol.includes("admin") && (
-                    <>
-                      <li>
-                        <NavLink
-                          to="/admin-panel"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-white/5" : ""
-                            }`
-                          }
-                        >
-                          <Settings size={16} />
-                          <span>ADMIN</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/register-employee"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-white/5" : ""
-                            }`
-                          }
-                        >
-                          <Users size={16} />
-                          <span>EMPLEADOS</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/dashboard"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-blue-500/10" : ""
-                            }`
-                          }
-                        >
-                          <BarChart3 size={16} />
-                          <span>DASHBOARD</span>
-                        </NavLink>
-                      </li>
-
-                      {/* DOCUMENTACIÓN (admin) */}
-                      <li>
-                        <NavLink
-                          to="/documentation"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-purple-500/10" : ""
-                            }`
-                          }
-                        >
-                          <BookOpen size={16} />
-                          <span>DOCUMENTACIÓN</span>
-                        </NavLink>
-                      </li>
-                    </>
-                  )}
-
-                  {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+          <div className="hidden lg:flex flex-1 items-stretch">
+              <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full pb-1 -mb-1">
+                <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
+                {!isAuthenticated && (
+                  <>
                     <li>
                       <NavLink
-                        to="/user/profile"
+                        to="/login"
+                        className={({ isActive }) =>
+                          `px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        INICIAR SESIÓN
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/register"
+                        className={({ isActive }) =>
+                          `px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide ${
+                            isActive ? "bg-white/90" : ""
+                          }`
+                        }
+                      >
+                        REGISTRARSE
+                      </NavLink>
+                    </li>
+                  </>
+                )}
+
+                {isAuthenticated && (
+                  <>
+                    <li>
+                      <NavLink
+                        to="/"
+                        end
                         className={({ isActive }) =>
                           `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                             isActive ? "text-white bg-white/5" : ""
                           }`
                         }
                       >
-                        <User size={16} />
-                        <span>PERFIL</span>
+                        <Home size={16} />
+                        <span>INICIO</span>
                       </NavLink>
                     </li>
-                  )}
 
-                  {Array.isArray(user?.rol) &&
-                    (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
+                    {Array.isArray(user?.rol) && user.rol.includes("admin") && (
                       <>
                         <li>
                           <NavLink
-                            to="/producto"
+                            to="/admin-panel"
                             className={({ isActive }) =>
                               `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                                 isActive ? "text-white bg-white/5" : ""
                               }`
                             }
                           >
-                            <Package size={16} />
-                            <span>PRODUCTOS</span>
+                            <Settings size={16} />
+                            <span>ADMIN</span>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/register-employee"
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <Users size={16} />
+                            <span>EMPLEADOS</span>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/dashboard"
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-blue-500/10" : ""
+                              }`
+                            }
+                          >
+                            <BarChart3 size={16} />
+                            <span>DASHBOARD</span>
                           </NavLink>
                         </li>
 
+                        {/* DOCUMENTACIÓN (admin) */}
+                        <li>
+                          <NavLink
+                            to="/documentation"
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-purple-500/10" : ""
+                              }`
+                            }
+                          >
+                            <BookOpen size={16} />
+                            <span>DOCUMENTACIÓN</span>
+                          </NavLink>
+                        </li>
+                      </>
+                    )}
+
+                    {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                      <li>
+                        <NavLink
+                          to="/user/profile"
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <User size={16} />
+                          <span>PERFIL</span>
+                        </NavLink>
+                      </li>
+                    )}
+
+                    {Array.isArray(user?.rol) &&
+                      (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
+                        <>
+                          <li>
+                            <NavLink
+                              to="/producto"
+                              className={({ isActive }) =>
+                                `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
+                              }
+                            >
+                              <Package size={16} />
+                              <span>PRODUCTOS</span>
+                            </NavLink>
+                          </li>
+
+                          <li
+                            className="relative"
+                            onMouseEnter={() => setOpenDropdown("carrito")}
+                            onMouseLeave={() => setOpenDropdown(null)}
+                          >
+                            <NavLink
+                              to="/carrito"
+                              className={({ isActive }) =>
+                                `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
+                              }
+                            >
+                              <ShoppingCart size={16} />
+                              <span>CARRITO</span>
+                              <ChevronDown size={14} className="ml-1" />
+                            </NavLink>
+
+                            {openDropdown === "carrito" && (
+                              <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                                <NavLink
+                                  to="/wishlist"
+                                  className={({ isActive }) =>
+                                    `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                      isActive ? "text-white bg-white/5" : ""
+                                    }`
+                                  }
+                                >
+                                  <Heart size={16} />
+                                  <span>WISHLIST</span>
+                                </NavLink>
+                              </div>
+                            )}
+                          </li>
+                        </>
+                      )}
+
+                    {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
+                      <>
                         <li
                           className="relative"
-                          onMouseEnter={() => setOpenDropdown("carrito")}
+                          onMouseEnter={() => setOpenDropdown("envios")}
                           onMouseLeave={() => setOpenDropdown(null)}
                         >
                           <NavLink
-                            to="/carrito"
+                            to="/envio"
                             className={({ isActive }) =>
                               `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                                 isActive ? "text-white bg-white/5" : ""
                               }`
                             }
                           >
-                            <ShoppingCart size={16} />
-                            <span>CARRITO</span>
+                            <Truck size={16} />
+                            <span>ENVÍOS</span>
                             <ChevronDown size={14} className="ml-1" />
                           </NavLink>
 
-                          {openDropdown === "carrito" && (
+                          {openDropdown === "envios" && (
                             <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                               <NavLink
-                                to="/wishlist"
+                                to="/envio/tarifas"
                                 className={({ isActive }) =>
                                   `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                                     isActive ? "text-white bg-white/5" : ""
                                   }`
                                 }
                               >
-                                <Heart size={16} />
-                                <span>WISHLIST</span>
+                                <DollarSign size={16} />
+                                <span>TARIFAS</span>
                               </NavLink>
                             </div>
                           )}
                         </li>
+
+                        <li>
+                          <NavLink
+                            to="/empleado-panel"
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <Users size={16} />
+                            <span>PANEL</span>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/promocion"
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <Users size={16} />
+                            <span>PROMOCION</span>
+                          </NavLink>
+                        </li>
                       </>
                     )}
 
-                  {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
-                    <>
-                      <li
-                        className="relative"
-                        onMouseEnter={() => setOpenDropdown("envios")}
-                        onMouseLeave={() => setOpenDropdown(null)}
+                    <li>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-red-500/10 hover:border-red-500/20 transition-colors text-sm font-medium tracking-wide border border-transparent"
                       >
-                        <NavLink
-                          to="/envio"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-white/5" : ""
-                            }`
-                          }
-                        >
-                          <Truck size={16} />
-                          <span>ENVÍOS</span>
-                          <ChevronDown size={14} className="ml-1" />
-                        </NavLink>
-
-                        {openDropdown === "envios" && (
-                          <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
-                            <NavLink
-                              to="/envio/tarifas"
-                              className={({ isActive }) =>
-                                `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                                  isActive ? "text-white bg-white/5" : ""
-                                }`
-                              }
-                            >
-                              <DollarSign size={16} />
-                              <span>TARIFAS</span>
-                            </NavLink>
-                          </div>
-                        )}
-                      </li>
-
-                      <li>
-                        <NavLink
-                          to="/empleado-panel"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-white/5" : ""
-                            }`
-                          }
-                        >
-                          <Users size={16} />
-                          <span>PANEL</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink
-                          to="/promocion"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-white/5" : ""
-                            }`
-                          }
-                        >
-                          <Users size={16} />
-                          <span>PROMOCION</span>
-                        </NavLink>
-                      </li>
-                    </>
-                  )}
-
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-red-500/10 hover:border-red-500/20 transition-colors text-sm font-medium tracking-wide border border-transparent"
-                    >
-                      <LogOut size={16} />
-                      <span>SALIR</span>
-                    </button>
-                  </li>
-                </>
-              )}
-              
-            </ul>
-          </div>
+                        <LogOut size={16} />
+                        <span>SALIR</span>
+                      </button>
+                    </li>
+                  </>
+                )}
+                
+              </ul>
+            </div>
           </div>
 
           {/* TOGGLE MÓVIL */}

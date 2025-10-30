@@ -1,8 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Added overflow-x-hidden to prevent horizontal scrolling */
+/* Evita scroll horizontal global */
 html,
 body {
   overflow-x: hidden;
@@ -14,36 +10,12 @@ body {
   color: white;
 }
 
-/* Custom scrollbar styles for better UX */
+/* === Scrollbar personalizado y visible en navbar === */
 @layer utilities {
-  /* Added scrollbar-hide utility for navbar */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .scrollbar-thumb-black::-webkit-scrollbar-thumb {
-    background-color: #000;
-    border-radius: 4px;
-  }
-
-  .scrollbar-track-gray-200::-webkit-scrollbar-track {
-    background-color: #e5e7eb;
-  }
-
-  /* === NUEVO: Scrollbar horizontal visible en navbar === */
   .nav-scroll {
     scrollbar-width: thin; /* Firefox */
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    scrollbar-color: rgba(255,255,255,.35) transparent;
+    scrollbar-gutter: stable both-edges; /* mantiene espacio estable */
   }
 
   .nav-scroll::-webkit-scrollbar {
@@ -51,15 +23,15 @@ body {
   }
 
   .nav-scroll::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255,255,255,.08);
   }
 
   .nav-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255,255,255,.45);
     border-radius: 9999px;
   }
 
   .nav-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255,255,255,.6);
   }
 }

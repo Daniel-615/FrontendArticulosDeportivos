@@ -300,7 +300,7 @@ function Navbar() {
                             }
                           >
                             <Users size={16} />
-                            <span>PROMOCION</span>
+                            <span>PROM</span>
                           </NavLink>
                         </li>
                       </>
@@ -440,7 +440,7 @@ function Navbar() {
                           }
                         >
                           <BookOpen size={16} />
-                          <span>DOCUMENTACIÓN</span>
+                          <span>DOCS</span>
                         </NavLink>
                       </li>
                     </>

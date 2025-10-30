@@ -43,7 +43,7 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
       try {
         const [coloresRes, productosRes, pcRes] = await Promise.all([
           getColores(),
-          getProductos(),           
+          getProductos(1,100),           
           getProductoColores(),      
         ])
 

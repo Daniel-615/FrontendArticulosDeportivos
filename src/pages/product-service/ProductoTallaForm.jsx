@@ -1,9 +1,8 @@
-"use client"
-
 import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { motion, AnimatePresence } from "framer-motion"
 import { Edit2, Trash2 } from "lucide-react"
+
 import {
   getProductoTallas,
   createProductoTalla,
@@ -12,7 +11,9 @@ import {
 } from "../../api-gateway/producto.talla.crud.js"
 import { getProductoColores } from "../../api-gateway/producto.color.crud.js"
 import { getTallas } from "../../api-gateway/talla.crud.js"
+
 import SidebarEmpleado from "../../components/sideBar.jsx"
+import SearchableSelect from "../../components/searchableSelect.jsx"
 
 export default function TallaColorProductoCrudForm() {
   const [items, setItems] = useState([])
@@ -26,8 +27,15 @@ export default function TallaColorProductoCrudForm() {
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors },
-  } = useForm()
+  } = useForm({
+    defaultValues: {
+      id_talla: "",
+      id_producto_color: "",
+      stock: "",
+    },
+  })
 
   useEffect(() => {
     cargarItems()
@@ -38,7 +46,7 @@ export default function TallaColorProductoCrudForm() {
   const cargarItems = async () => {
     const res = await getProductoTallas()
     if (res.success) {
-      setItems(Array.isArray(res.data.tallas_color) ? res.data.tallas_color : [])
+      setItems(Array.isArray(res.data?.tallas_color) ? res.data.tallas_color : [])
     } else setFormError(res.error || "Error al cargar los registros")
   }
 
@@ -52,7 +60,7 @@ export default function TallaColorProductoCrudForm() {
   const cargarColores = async () => {
     const res = await getProductoColores()
     if (res.success) {
-      setColores(Array.isArray(res.data.data) ? res.data.data : [])
+      setColores(Array.isArray(res.data?.data) ? res.data.data : [])
     } else setFormError(res.error || "Error al cargar colores")
   }
 
@@ -61,12 +69,12 @@ export default function TallaColorProductoCrudForm() {
     const payload = {
       id_talla: data.id_talla,
       id_producto_color: data.id_producto_color,
-      stock: data.stock,
+      stock: Number(data.stock),
     }
 
-    let res
-    if (editando) res = await updateProductoTalla(editando, payload)
-    else res = await createProductoTalla(payload)
+    const res = editando
+      ? await updateProductoTalla(editando, payload)
+      : await createProductoTalla(payload)
 
     if (res.success) {
       reset()
@@ -85,17 +93,24 @@ export default function TallaColorProductoCrudForm() {
 
   const handleEdit = (item) => {
     setEditando(item.id)
-    setValue("id_talla", item.id_talla)
-    setValue("id_producto_color", item.id_producto_color)
-    setValue("stock", item.stock)
+    setValue("id_talla", String(item.id_talla))
+    setValue("id_producto_color", String(item.id_producto_color))
+    setValue("stock", String(item.stock ?? ""))
+    // scroll al formulario
+    document.getElementById("tallaFormTop")?.scrollIntoView({ behavior: "smooth" })
   }
+
+  // Opciones para los combos
+  const tallaOptions = tallas.map((t) => ({ value: String(t.id), label: t.valor }))
+  const colorOptions = colores.map((c) => ({
+    value: String(c.id),
+    label: `${c.nombreProducto} - ${c.nombreColor}`,
+  }))
 
   return (
     <div className="flex min-h-screen bg-white">
-      {/* Sidebar */}
       <SidebarEmpleado />
 
-      {/* Contenido */}
       <div className="flex-1 p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
@@ -105,6 +120,7 @@ export default function TallaColorProductoCrudForm() {
 
           {/* Formulario */}
           <motion.div
+            id="tallaFormTop"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -116,54 +132,65 @@ export default function TallaColorProductoCrudForm() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
+                {/* TALLA */}
                 <div>
-                  <label className="block mb-2 font-bold uppercase text-sm">Talla</label>
-                  <select
-                    {...register("id_talla", { required: "Selecciona una talla" })}
-                    className="w-full px-4 py-3 bg-white text-black border-2 border-white focus:outline-none"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      -- SELECCIONA TALLA --
-                    </option>
-                    {tallas.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.valor}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.id_talla && <p className="text-red-400 mt-1 font-medium">{errors.id_talla.message}</p>}
+                  <Controller
+                    name="id_talla"
+                    control={control}
+                    rules={{ required: "Selecciona una talla" }}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        label="Talla"
+                        required
+                        placeholder="SELECCIONA TALLA"
+                        value={field.value}
+                        onChange={field.onChange}
+                        options={tallaOptions}
+                        error={errors.id_talla?.message}
+                        // estilos de botón/lista para buen contraste
+                        buttonClassName="border-white"
+                        listClassName="bg-white"
+                      />
+                    )}
+                  />
                 </div>
 
+                {/* PRODUCTO COLOR */}
                 <div>
-                  <label className="block mb-2 font-bold uppercase text-sm">Producto Color</label>
-                  <select
-                    {...register("id_producto_color", { required: "Selecciona un color" })}
-                    className="w-full px-4 py-3 bg-white text-black border-2 border-white focus:outline-none"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      -- SELECCIONA COLOR --
-                    </option>
-                    {colores.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombreProducto} - {c.nombreColor}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.id_producto_color && (
-                    <p className="text-red-400 mt-1 font-medium">{errors.id_producto_color.message}</p>
-                  )}
+                  <Controller
+                    name="id_producto_color"
+                    control={control}
+                    rules={{ required: "Selecciona un color de producto" }}
+                    render={({ field }) => (
+                      <SearchableSelect
+                        label="Producto Color"
+                        required
+                        placeholder="SELECCIONA COLOR"
+                        value={field.value}
+                        onChange={field.onChange}
+                        options={colorOptions}
+                        error={errors.id_producto_color?.message}
+                        buttonClassName="border-white"
+                        listClassName="bg-white"
+                      />
+                    )}
+                  />
                 </div>
               </div>
 
+              {/* STOCK */}
               <div>
                 <label className="block mb-2 font-bold uppercase text-sm">Stock</label>
                 <input
                   type="number"
-                  {...register("stock", { required: "El stock es obligatorio", min: 0 })}
+                  min={0}
+                  step={1}
                   placeholder="CANTIDAD EN STOCK"
                   className="w-full px-4 py-3 bg-white text-black border-2 border-white focus:outline-none"
+                  {...register("stock", {
+                    required: "El stock es obligatorio",
+                    min: { value: 0, message: "Debe ser 0 o mayor" },
+                  })}
                 />
                 {errors.stock && <p className="text-red-400 mt-1 font-medium">{errors.stock.message}</p>}
               </div>
@@ -175,6 +202,7 @@ export default function TallaColorProductoCrudForm() {
                 >
                   {editando ? "Actualizar" : "Crear"}
                 </button>
+
                 {editando && (
                   <button
                     type="button"
@@ -218,6 +246,7 @@ export default function TallaColorProductoCrudForm() {
                       <p className="text-gray-600 text-sm">{item.color?.nombreColor}</p>
                     </div>
                   </div>
+
                   <div className="mb-4 space-y-1">
                     <p className="text-black font-bold">TALLA: {item.talla}</p>
                     <p className="text-black font-bold">STOCK: {item.stock}</p>

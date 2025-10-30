@@ -43,7 +43,7 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Hero Section - Adidas-inspired bold hero */}
       <section className="relative h-[400px] sm:h-[500px] md:h-[600px] bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
@@ -74,7 +74,7 @@ function HomePage() {
               siguiente nivel.
             </p>
             <button
-              onClick={() => navigate("/productos")}
+              onClick={() => navigate("/producto")}
               className="group bg-white text-black px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg hover:bg-gray-100 transition-colors flex items-center gap-2"
             >
               EXPLORAR PRODUCTOS
@@ -93,7 +93,7 @@ function HomePage() {
               <p className="text-gray-600 text-base sm:text-lg">Lo mejor de nuestra colección</p>
             </div>
             <button
-              onClick={() => navigate("/productos")}
+              onClick={() => navigate("/wishlist")}
               className="hidden md:flex items-center gap-2 text-black font-bold hover:gap-4 transition-all"
             >
               VER TODO
@@ -115,7 +115,7 @@ function HomePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  onClick={() => navigate("/productos")}
+                  onClick={() => navigate("/producto")}
                   className="group cursor-pointer"
                 >
                   <div className="relative bg-gray-50 mb-4 overflow-hidden aspect-square">
@@ -137,7 +137,7 @@ function HomePage() {
           )}
 
           <button
-            onClick={() => navigate("/productos")}
+            onClick={() => navigate("/producto")}
             className="md:hidden flex items-center gap-2 text-black font-bold mx-auto mt-8 hover:gap-4 transition-all"
           >
             VER TODO
@@ -256,7 +256,7 @@ function HomePage() {
       <section className="relative h-64 sm:h-80 md:h-96 bg-black overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/30 z-10"></div>
         <img
-          src="/sports-equipment-gym-weights-athletic-gear.jpg"
+          src="Mechi.webp"
           alt="CTA Banner"
           className="absolute inset-0 w-full h-full object-cover"
         />

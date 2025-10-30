@@ -530,21 +530,60 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 mb-4">
-                <div className="h-64 sm:h-80 md:h-96">
-                  <MapDistancePicker
-                    defaultOrigin={{ lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng }}
-                    value={coords}
-                    onChange={(next) => {
-                      setCoords({
-                        origin: { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
-                        destination: next?.destination ?? null,
-                        distanceKm: next?.distanceKm ?? 0,
-                      })
-                    }}
-                    height="100%"
-                  />
+              <button
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        setCoords({
+                          origin: { lat: position.coords.latitude, lng: position.coords.longitude },
+                          destination: coords.destination,
+                          distanceKm: coords.distanceKm,
+                        })
+                      },
+                      (error) => {
+                        console.error("Error obteniendo ubicación:", error)
+                        setError("No se pudo obtener tu ubicación. Verifica los permisos del navegador.")
+                      },
+                    )
+                  } else {
+                    setError("Tu navegador no soporta geolocalización.")
+                  }
+                }}
+                className="mb-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors text-sm"
+              >
+                Usar mi ubicación como origen
+              </button>
+
+              <div className="mb-4 text-white/60 text-xs">
+                Consejo: haz clic en el mapa para colocar el destino. Puedes usar tu ubicación actual como origen.
+              </div>
+
+              <div className="mb-6 border border-white/20 bg-white/5 overflow-hidden" style={{ height: "400px" }}>
+                <MapDistancePicker
+                  defaultOrigin={{ lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng }}
+                  value={coords}
+                  onChange={(next) => {
+                    setCoords({
+                      origin: coords.origin || { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
+                      destination: next?.destination ?? null,
+                      distanceKm: next?.distanceKm ?? 0,
+                    })
+                  }}
+                  height="100%"
+                />
+              </div>
+
+              <div className="mb-4 text-white/80 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>
+                    Origen: {coords.origin.lat.toFixed(5)}, {coords.origin.lng.toFixed(5)}
+                  </span>
+                  <span>Destino: {coords.destination ? `haz clic en el mapa` : "haz clic en el mapa"}</span>
                 </div>
+                {coords.destination && (
+                  <div className="mt-2 text-emerald-300">Distancia aprox.: {coords.distanceKm.toFixed(2)} km</div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">

@@ -36,6 +36,7 @@ import TarifaEnvioForm from "./pages/envio-service/tarifaEnvioForm.jsx"
 import DashboardForm from "./components/dashboard.jsx"
 import PromocionCreateForm from "./pages/product-service/PromocionForm.jsx"
 import DocsPage from "./pages/DocsPage.jsx"
+
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
   return (

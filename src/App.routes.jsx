@@ -1,5 +1,3 @@
-"use client"
-
 import RegisterPage from "./pages/auth-service/user/RegisterPage"
 import LoginPage from "./pages/auth-service/user/LoginPage"
 import RegisterEmployeePage from "./pages/auth-service/user/RegisterEmployee"
@@ -37,7 +35,7 @@ import EnviosManager from "./pages/envio-service/EnvioForm.jsx"
 import TarifaEnvioForm from "./pages/envio-service/tarifaEnvioForm.jsx"
 import DashboardForm from "./components/dashboard.jsx"
 import PromocionCreateForm from "./pages/product-service/PromocionForm.jsx"
-
+import DocsPage from "./pages/DocsPage.jsx"
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth()
   return (
@@ -51,6 +49,7 @@ function AppRoutes() {
       <Route path="/wishlist/shared/:shareId" element={<PublicWishlist />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />
+      <Route path="/documentation" element={<DocsPage />} />
       {/* Protegidas */}
       <Route
         path="/"

@@ -1,5 +1,3 @@
-"use client"
-
 import { motion } from "framer-motion"
 import SidebarEmpleado from "../components/sideBar.jsx"
 import { useNavigate } from "react-router-dom"

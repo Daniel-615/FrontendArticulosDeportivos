@@ -9,7 +9,6 @@ import { calcularEnvioRequest } from "../api-gateway/tarifa.envio.crud.js"
 import { pay } from "../api-gateway/stripe.js"
 import MapDistancePicker from "../components/mapDistancePicker.jsx"
 import { getDeseosUsuario, consumirDeseo } from "../api-gateway/deseo.crud.js"
-import { getImageUrl } from "../utils/imageHelper.js"
 
 const WAREHOUSE_ANTIGUA = {
   name: "Bodega - Antigua Guatemala",
@@ -204,7 +203,7 @@ export default function CartPage() {
 
   const promoTipo = useMemo(
     () => (cumpleReglasPromo ? String(deseo?.promocion?.tipo || "").toUpperCase() : ""),
-    [cumpleReglasPromo, deseo],
+    [cumpleReglasPromo, deseo]
   )
 
   const promoPct = useMemo(() => {
@@ -293,7 +292,7 @@ export default function CartPage() {
               item.producto?.id ??
               item.producto?.producto_id ??
               item.producto?.productoColor?.producto_id ??
-              0,
+              0
           ),
         }
       })
@@ -338,24 +337,20 @@ export default function CartPage() {
   // ===== Render =====
   return (
     <div className="min-h-screen bg-black">
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <div className="text-center mb-8 sm:mb-12 pt-6 sm:pt-8">
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4">
-            <ShoppingCart className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-            <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">CARRITO</h1>
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center mb-12 pt-8">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <ShoppingCart className="w-10 h-10 text-white" />
+            <h1 className="text-5xl font-black text-white tracking-tight">CARRITO</h1>
           </div>
-          <p className="text-white/60 text-xs sm:text-sm tracking-wider uppercase">Revisa tus productos</p>
+          <p className="text-white/60 text-sm tracking-wider uppercase">Revisa tus productos</p>
         </div>
 
-        {error && (
-          <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-red-500/20 border border-red-500/50 text-white text-center text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-8 p-4 bg-red-500/20 border border-red-500/50 text-white text-center">{error}</div>}
 
         {/* Banner de promoción */}
         {deseo && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-emerald-500/15 border border-emerald-400/40 text-white">
+          <div className="mb-6 p-4 bg-emerald-500/15 border border-emerald-400/40 text-white">
             <div className="flex items-center gap-3">
               {isEnvioGratis ? <Truck className="w-5 h-5" /> : <TicketPercent className="w-5 h-5" />}
               <div className="font-bold uppercase">
@@ -417,96 +412,80 @@ export default function CartPage() {
           </div>
         ) : (
           <>
-            <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-              {cartItems.map((item) => {
-                const imagenPath = item.producto?.productoColor?.imagenUrl
-                const imagenUrl = getImageUrl(imagenPath, "/generic-sports-product.png")
+            <div className="space-y-4 mb-8">
+              {cartItems.map((item) => (
+                <div key={item.id} className="bg-white/10 border border-white/20 p-6 hover:bg-white/[0.15] transition-colors">
+                  <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 bg-white/5 border border-white/20 overflow-hidden">
+                      <img
+                        src={item.producto?.productoColor?.imagenUrl || "/placeholder.svg?height=96&width=96&query=sports+product"}
+                        alt={item.producto?.nombre || "Producto"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
 
-                return (
-                  <div
-                    key={item.id}
-                    className="bg-white/10 border border-white/20 p-4 sm:p-6 hover:bg-white/[0.15] transition-colors"
-                  >
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/5 border border-white/20 overflow-hidden flex-shrink-0">
-                        <img
-                          src={imagenUrl || "/placeholder.svg"}
-                          alt={item.producto?.nombre || "Producto"}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.src = "/generic-sports-product.png"
-                          }}
-                        />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-lg sm:text-xl font-bold text-white mb-2 tracking-tight break-words">
-                          {item.producto?.productoColor?.producto.nombre || "Producto no disponible"}
-                        </h2>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-white/60 text-sm">
-                          <span>
-                            PRECIO:{" "}
-                            <span className="text-white font-bold">
-                              Q{item.producto?.productoColor?.producto.precio ?? "0"}
-                            </span>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold text-white mb-2 tracking-tight">
+                        {item.producto?.productoColor?.producto.nombre || "Producto no disponible"}
+                      </h2>
+                      <div className="flex items-center gap-6 text-white/60 text-sm">
+                        <span>
+                          PRECIO:{" "}
+                          <span className="text-white font-bold">
+                            Q{item.producto?.productoColor?.producto.precio ?? "0"}
                           </span>
-                          <span>
-                            TALLA:{" "}
-                            <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-4 w-full sm:w-auto">
-                        <div className="flex items-center gap-2 bg-white/5 border border-white/20 p-2 flex-1 sm:flex-initial">
-                          <button
-                            onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad - 1)}
-                            disabled={item.cantidad <= 1}
-                            className="p-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 text-white transition-colors"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.cantidad}
-                            onChange={(e) =>
-                              handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))
-                            }
-                            className="w-12 sm:w-16 px-2 sm:px-3 py-2 text-center bg-white/5 text-white border border-white/20 focus:outline-none focus:border-white/40"
-                          />
-                          <button
-                            onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad + 1)}
-                            className="p-2 bg-white/10 hover:bg-white/20 text-white transition-colors"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => handleRemove(item.producto_talla_color_id)}
-                          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white border border-red-500/50 transition-colors flex-1 sm:flex-initial justify-center"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span className="text-sm font-medium uppercase">Eliminar</span>
-                        </button>
+                        </span>
+                        <span>
+                          TALLA: <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
+                        </span>
                       </div>
                     </div>
+
+                    <div className="flex flex-col items-end gap-4">
+                      <div className="flex items-center gap-2 bg-white/5 border border-white/20 p-2">
+                        <button
+                          onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad - 1)}
+                          disabled={item.cantidad <= 1}
+                          className="p-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 text-white transition-colors"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.cantidad}
+                          onChange={(e) => handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))}
+                          className="w-16 px-3 py-2 text-center bg-white/5 text-white border border-white/20 focus:outline-none focus:border-white/40"
+                        />
+                        <button
+                          onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad + 1)}
+                          className="p-2 bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => handleRemove(item.producto_talla_color_id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white border border-red-500/50 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="text-sm font-medium uppercase">Eliminar</span>
+                      </button>
+                    </div>
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
 
-            <div className="bg-white/10 border border-white/20 p-4 sm:p-6 md:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-4">
+            <div className="bg-white/10 border border-white/20 p-8">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white mb-2 tracking-tight">RESUMEN</h3>
+                  <h3 className="text-2xl font-black text-white mb-2 tracking-tight">RESUMEN</h3>
                   <p className="text-white/60 text-sm uppercase tracking-wide">Productos: {cartItems.length}</p>
                 </div>
-                <div className="text-left sm:text-right w-full sm:w-auto">
+                <div className="text-right">
                   <p className="text-white/60 mb-1 text-sm uppercase tracking-wide">Total sin promos:</p>
-                  <p className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                    Q{totalProductos.toFixed(2)}
-                  </p>
+                  <p className="text-4xl font-black text-white tracking-tight">Q{totalProductos.toFixed(2)}</p>
                 </div>
               </div>
 
@@ -530,66 +509,25 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        setCoords({
-                          origin: { lat: position.coords.latitude, lng: position.coords.longitude },
-                          destination: coords.destination,
-                          distanceKm: coords.distanceKm,
-                        })
-                      },
-                      (error) => {
-                        console.error("Error obteniendo ubicación:", error)
-                        setError("No se pudo obtener tu ubicación. Verifica los permisos del navegador.")
-                      },
-                    )
-                  } else {
-                    setError("Tu navegador no soporta geolocalización.")
-                  }
-                }}
-                className="mb-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors text-sm"
-              >
-                Usar mi ubicación como origen
-              </button>
-
-              <div className="mb-4 text-white/60 text-xs">
-                Consejo: haz clic en el mapa para colocar el destino. Puedes usar tu ubicación actual como origen.
-              </div>
-
-              <div className="mb-6 border border-white/20 bg-white/5 overflow-hidden" style={{ height: "400px" }}>
+              <div className="grid gap-4 mb-4">
                 <MapDistancePicker
                   defaultOrigin={{ lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng }}
                   value={coords}
                   onChange={(next) => {
                     setCoords({
-                      origin: coords.origin || { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
+                      origin: { lat: WAREHOUSE_ANTIGUA.lat, lng: WAREHOUSE_ANTIGUA.lng },
                       destination: next?.destination ?? null,
                       distanceKm: next?.distanceKm ?? 0,
                     })
                   }}
-                  height="100%"
+                  height="320px"
                 />
               </div>
 
-              <div className="mb-4 text-white/80 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>
-                    Origen: {coords.origin.lat.toFixed(5)}, {coords.origin.lng.toFixed(5)}
-                  </span>
-                  <span>Destino: {coords.destination ? `haz clic en el mapa` : "haz clic en el mapa"}</span>
-                </div>
-                {coords.destination && (
-                  <div className="mt-2 text-emerald-300">Distancia aprox.: {coords.distanceKm.toFixed(2)} km</div>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex gap-4">
                 <button
                   onClick={handleClear}
-                  className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/20 transition-colors font-medium uppercase tracking-wide order-3 sm:order-1"
+                  className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/20 transition-colors font-medium uppercase tracking-wide"
                   disabled={loading || paying || quoting}
                 >
                   <Trash2 className="w-5 h-5" />
@@ -597,7 +535,7 @@ export default function CartPage() {
                 </button>
 
                 <button
-                  className="flex-1 px-6 sm:px-8 py-3 bg-white hover:bg-white/90 text-black font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-wide order-1 sm:order-2"
+                  className="flex-1 px-8 py-3 bg-white hover:bg-white/90 text-black font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-wide"
                   onClick={handlePago}
                   disabled={
                     paying ||
@@ -612,10 +550,10 @@ export default function CartPage() {
                     !quote
                       ? "Calcula el envío para habilitar el pago"
                       : !isNitValid(nit)
-                        ? "Ingrese un NIT válido (o CF)"
-                        : !coords.destination
-                          ? "Seleccione un destino en el mapa"
-                          : "Proceder al Pago"
+                      ? "Ingrese un NIT válido (o CF)"
+                      : !coords.destination
+                      ? "Seleccione un destino en el mapa"
+                      : "Proceder al Pago"
                   }
                 >
                   {paying ? "Redirigiendo a Stripe..." : quote ? `Pagar Q${totalConEnvio}` : "Proceder al Pago"}
@@ -623,7 +561,7 @@ export default function CartPage() {
 
                 <button
                   onClick={handleCalcularEnvio}
-                  className="flex-1 px-6 sm:px-8 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/20 font-bold transition-colors uppercase tracking-wide disabled:opacity-60 order-2 sm:order-3"
+                  className="flex-1 px-8 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/20 font-bold transition-colors uppercase tracking-wide disabled:opacity-60"
                   disabled={loading || paying || quoting}
                 >
                   {quoting ? "Calculando..." : "Calcular envío"}
@@ -631,25 +569,21 @@ export default function CartPage() {
               </div>
 
               {quote && (
-                <div className="mt-4 sm:mt-6 p-4 sm:p-5 bg-white/5 border border-white/20">
-                  <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
-                    <h4 className="text-lg sm:text-xl font-bold text-white">Envío estimado</h4>
+                <div className="mt-6 p-5 bg-white/5 border border-white/20">
+                  <div className="flex items-baseline justify-between mb-4">
+                    <h4 className="text-xl font-bold text-white">Envío estimado</h4>
                     <div className="text-right">
-                      <p className="text-white/60 text-xs sm:text-sm">
-                        Distancia: {Number(quote.distancia_km).toFixed(2)} km
-                      </p>
+                      <p className="text-white/60 text-sm">Distancia: {Number(quote.distancia_km).toFixed(2)} km</p>
                       {isEnvioGratis ? (
-                        <p className="text-emerald-300 font-bold text-base sm:text-lg">Envío GRATIS por promoción</p>
+                        <p className="text-emerald-300 font-bold text-lg">Envío GRATIS por promoción</p>
                       ) : (
-                        <p className="text-2xl sm:text-3xl font-bold text-white">
-                          Q{Number(quote.total_envio).toFixed(2)}
-                        </p>
+                        <p className="text-3xl font-bold text-white">Q{Number(quote.total_envio).toFixed(2)}</p>
                       )}
                     </div>
                   </div>
 
                   {!isEnvioGratis && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-3 text-white/60 text-xs sm:text-sm">
+                    <div className="grid md:grid-cols-3 gap-3 mt-3 text-white/60 text-sm">
                       <div>
                         Recargo por distancia:{" "}
                         <span className="font-semibold text-white">
@@ -675,18 +609,16 @@ export default function CartPage() {
                   )}
 
                   <details className="mt-4">
-                    <summary className="cursor-pointer text-white hover:text-white/80 text-xs sm:text-sm ">
-                      Ver desglose por artículo
-                    </summary>
+                    <summary className="cursor-pointer text-white hover:text-white/80">Ver desglose por artículo</summary>
                     <div className="mt-3 space-y-2">
                       {Array.isArray(quote.detalle) &&
                         quote.detalle.map((d, i) => (
                           <div key={i} className="p-3 bg-white/5 border border-white/10">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <div className="text-white font-medium text-sm">
+                            <div className="flex items-center justify-between">
+                              <div className="text-white font-medium">
                                 {d.item?.nombre || `Item ${i + 1}`} × {d.item?.cantidad ?? 1}
                               </div>
-                              <div className="text-white font-semibold text-sm">
+                              <div className="text-white font-semibold">
                                 Q{Number(d?.costos?.total_item ?? 0).toFixed(2)}
                               </div>
                             </div>
@@ -701,7 +633,7 @@ export default function CartPage() {
                   </details>
 
                   <div className="mt-5">
-                    <label className="block text-white text-xs sm:text-sm font-medium mb-2">
+                    <label className="block text-white text-sm font-medium mb-2">
                       NIT para la factura (ingrese <span className="font-semibold">CF</span> si no desea facturar)
                     </label>
                     <input
@@ -709,20 +641,18 @@ export default function CartPage() {
                       placeholder="CF o NIT — p. ej., 1234567-8"
                       value={nit}
                       onChange={(e) => handleNitChange(e.target.value)}
-                      className={`w-full px-4 py-2 bg-white/5 text-white border text-sm sm:text-base ${
+                      className={`w-full md:max-w-md px-4 py-2 bg-white/5 text-white border ${
                         nitError ? "border-red-400" : "border-white/20"
                       } focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent`}
                     />
-                    {nitError && <p className="mt-1 text-xs sm:text-sm text-red-400">{nitError}</p>}
+                    {nitError && <p className="mt-1 text-sm text-red-400">{nitError}</p>}
                   </div>
 
                   <div className="mt-4 text-right">
-                    <div className="text-white/60 text-xs sm:text-base">
+                    <div className="text-white/60">
                       Total productos {isDescPorc ? "(con descuento)" : ""}: Q{totalProductosConDescuento.toFixed(2)}
                     </div>
-                    <div className="text-base sm:text-lg font-bold text-white">
-                      Total a pagar aprox.: Q{totalConEnvio}
-                    </div>
+                    <div className="text-xl font-bold text-white">Total a pagar aprox.: Q{totalConEnvio}</div>
                   </div>
                 </div>
               )}

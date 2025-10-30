@@ -172,7 +172,7 @@ export default function SearchableSelect({
         >
           {/* buscador */}
           <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-black">
-            <Search className="w-4 h-4 text-gray-500" />
+            <Search className="w-4 h-4 text-gray-500" />    
             <input
               ref={inputRef}
               value={query}

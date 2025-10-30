@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect, useMemo } from "react"
 import {
   createProductoColor,
@@ -26,9 +27,9 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
   const [productoColores, setProductoColores] = useState([])
   const [nombreProductoActual, setNombreProductoActual] = useState("")
 
-  // 🔹 Paginación interna
+  // Paginación interna
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(9) // tarjetas por página
+  const [limit, setLimit] = useState(9)
   const total = productoColores.length
   const totalPages = Math.max(1, Math.ceil(total / limit))
 
@@ -42,8 +43,8 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
       try {
         const [coloresRes, productosRes, pcRes] = await Promise.all([
           getColores(),
-          getProductos({ page: 1, limit: 1000 }), // para tener todos en el <select>
-          getProductoColores(), // trae todo; la paginación es interna
+          getProductos(),           
+          getProductoColores(),      
         ])
 
         if (coloresRes.success) setColores(coloresRes.data || [])
@@ -51,14 +52,13 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
         if (pcRes.success) setProductoColores(pcRes.data?.data || [])
 
         if (initialId) cargarRegistro(initialId)
-      } catch (err) {
+      } catch {
         setErrorMsg("Error al inicializar el formulario.")
       }
     }
     init()
-  }, []) // eslint-disable-line
+  }, [])
 
-  // Reinicia a la página 1 si cambia el tamaño de página
   useEffect(() => {
     setPage(1)
   }, [limit, productoColores])
@@ -67,14 +67,15 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
     try {
       const res = await getProductoColorById(pcId)
       if (res.success) {
+        const item = res.data || {}
         setId(pcId)
-        setColorId(res.data.colorId || "")
-        setProductoId(res.data.productoId || "")
-        setImagenPreview(res.data.imagenUrl || null)
+        setColorId(item.colorId ?? "")
+        setProductoId(item.productoId ?? "")
+        setImagenPreview(item.imagenUrl || null)
         setImagenFile(null)
 
-        const producto = productos.find((p) => p.id === res.data.productoId)
-        setNombreProductoActual(producto?.nombre || "")
+        const p = productos.find((x) => String(x.id) === String(item.productoId))
+        setNombreProductoActual(p?.nombre || "")
 
         document.getElementById("productoColorForm")?.scrollIntoView({ behavior: "smooth" })
       } else {
@@ -96,9 +97,13 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
     setFieldErrors({})
     setErrorMsg("")
 
+    const isEdit = Boolean(id)
     const errors = {}
-    if (!productoId) errors.productoId = "Debes seleccionar un producto."
-    if (!colorId) errors.colorId = "Debes seleccionar un color."
+    // 🔸 En creación exijo producto y color; en edición solo si el usuario los cambió
+    if (!isEdit) {
+      if (!productoId) errors.productoId = "Debes seleccionar un producto."
+      if (!colorId) errors.colorId = "Debes seleccionar un color."
+    }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
@@ -106,14 +111,16 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
     }
 
     setLoading(true)
-
     try {
       const payload = new FormData()
-      payload.append("colorId", colorId)
-      payload.append("productoId", productoId)
+      // Si los tienes en estado, envíalos (algunos backends los requieren también en PUT)
+      if (productoId) payload.append("productoId", productoId)
+      if (colorId) payload.append("colorId", colorId)
       if (imagenFile) payload.append("imagen", imagenFile)
 
-      const res = id ? await updateProductoColor(id, payload) : await createProductoColor(payload)
+      const res = isEdit
+        ? await updateProductoColor(id, payload)
+        : await createProductoColor(payload)
 
       if (res.success) {
         onSuccess?.()
@@ -160,7 +167,6 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
     setFieldErrors({})
   }
 
-  // 🔹 UI de paginación
   const Pagination = () => {
     const baseBtn =
       "inline-flex items-center justify-center h-9 w-9 rounded-md border border-black text-sm leading-none transition-colors"
@@ -168,26 +174,21 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
     const active = "bg-black text-white"
     const disabled = "opacity-50 cursor-not-allowed"
 
-    // Crea un rango compacto con elipsis
     const pages = []
-    const push = (p) => pages.push(p)
     const show = (p) => p >= 1 && p <= totalPages
-
-    push(1)
-    if (page - 2 > 2) push("left-ellipsis")
-    for (let p = page - 1; p <= page + 1; p++) if (show(p)) push(p)
-    if (page + 2 < totalPages - 1) push("right-ellipsis")
-    if (totalPages > 1) push(totalPages)
+    pages.push(1)
+    if (page - 2 > 2) pages.push("left-ellipsis")
+    for (let p = page - 1; p <= page + 1; p++) if (show(p)) pages.push(p)
+    if (page + 2 < totalPages - 1) pages.push("right-ellipsis")
+    if (totalPages > 1) pages.push(totalPages)
     const cleaned = pages.filter((p, i) => pages.indexOf(p) === i)
 
     return (
       <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="text-sm text-gray-700">
-          Mostrando{" "}
-          <span className="font-semibold">{pageItems.length}</span> de{" "}
+          Mostrando <span className="font-semibold">{pageItems.length}</span> de{" "}
           <span className="font-semibold">{total}</span> registros · Página{" "}
-          <span className="font-semibold">{page}</span>/
-          <span className="font-semibold">{totalPages}</span>
+          <span className="font-semibold">{page}</span>/<span className="font-semibold">{totalPages}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -251,7 +252,6 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
         <SidebarEmpleado />
       </div>
 
-      {/* Contenido principal */}
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -266,39 +266,28 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
 
             {errorMsg && <div className="p-4 mb-4 bg-red-600 text-white font-medium">{errorMsg}</div>}
 
-            {!id && (
-              <div className="grid gap-6 md:grid-cols-2 mb-6">
-                <div>
-                  <SearchableSelect
-                    label="Seleccionar producto"
-                    required
-                    placeholder="SELECCIONA UN PRODUCTO"
-                    value={productoId}
-                    onChange={(v) => setProductoId(v)}
-                    options={productos.map((p) => ({ value: p.id, label: p.nombre }))}
-                    error={fieldErrors.productoId}
-                  />
-                  {fieldErrors.productoId && (
-                    <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.productoId}</p>
-                  )}
-                </div>
+            {/* En edición también muestro los combos (puedes deshabilitarlos si no quieres cambios) */}
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
+              <SearchableSelect
+                label="Seleccionar producto"
+                required={!id}
+                placeholder="SELECCIONA UN PRODUCTO"
+                value={productoId}
+                onChange={(v) => setProductoId(v)}
+                options={productos.map((p) => ({ value: p.id, label: p.nombre }))}
+                error={fieldErrors.productoId}
+              />
 
-                <div>
-                  <SearchableSelect
-                    label="Seleccionar color"
-                    required
-                    placeholder="SELECCIONA UN COLOR"
-                    value={colorId}
-                    onChange={(v) => setColorId(v)}
-                    options={colores.map((c) => ({ value: c.id, label: c.nombre }))}
-                    error={fieldErrors.colorId}
-                  />
-                  {fieldErrors.colorId && (
-                    <p className="text-red-400 text-sm mt-1 font-medium">{fieldErrors.colorId}</p>
-                  )}
-                </div>
-              </div>
-            )}
+              <SearchableSelect
+                label="Seleccionar color"
+                required={!id}
+                placeholder="SELECCIONA UN COLOR"
+                value={colorId}
+                onChange={(v) => setColorId(v)}
+                options={colores.map((c) => ({ value: c.id, label: c.nombre }))}
+                error={fieldErrors.colorId}
+              />
+            </div>
 
             {/* Imagen */}
             <div className="mb-6">
@@ -361,7 +350,6 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
                       key={pc.id}
                       className="bg-white border-2 border-black p-0 hover:border-gray-600 transition-colors overflow-hidden"
                     >
-                      {/* Imagen del producto */}
                       <div className="w-full h-48 bg-gray-100 border-b-2 border-black flex items-center justify-center overflow-hidden">
                         {pc.imagenUrl ? (
                           <img
@@ -374,12 +362,10 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
                         )}
                       </div>
 
-                      {/* Información del producto */}
                       <div className="p-4">
                         <h4 className="font-bold uppercase text-sm mb-1 text-black">{pc.nombreProducto}</h4>
                         <p className="text-gray-600 text-sm mb-4">{pc.nombreColor}</p>
 
-                        {/* Botones */}
                         <div className="flex gap-2">
                           <button
                             onClick={() => cargarRegistro(pc.id)}

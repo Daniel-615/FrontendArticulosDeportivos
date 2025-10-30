@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Evita scroll horizontal global */
 html,
 body {
@@ -13,25 +17,15 @@ body {
 /* === Scrollbar personalizado y visible en navbar === */
 @layer utilities {
   .nav-scroll {
-    scrollbar-width: thin; /* Firefox */
+    scrollbar-width: thin;                   /* Firefox */
     scrollbar-color: rgba(255,255,255,.35) transparent;
-    scrollbar-gutter: stable both-edges; /* mantiene espacio estable */
+    scrollbar-gutter: stable both-edges;     /* reserva espacio para la barra */
   }
-
-  .nav-scroll::-webkit-scrollbar {
-    height: 8px; /* altura visible */
-  }
-
-  .nav-scroll::-webkit-scrollbar-track {
-    background: rgba(255,255,255,.08);
-  }
-
+  .nav-scroll::-webkit-scrollbar { height: 8px; }
+  .nav-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,.08); }
   .nav-scroll::-webkit-scrollbar-thumb {
     background: rgba(255,255,255,.45);
     border-radius: 9999px;
   }
-
-  .nav-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255,.6);
-  }
+  .nav-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.6); }
 }

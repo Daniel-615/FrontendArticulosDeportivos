@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
@@ -14,33 +16,44 @@ import {
   Truck,
   ChevronDown,
   DollarSign,
-  BarChart3, 
+  BarChart3,
+  Menu,
+  X,
 } from "lucide-react"
 
 function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const [openDropdown, setOpenDropdown] = useState(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout()
+    setMobileMenuOpen(false)
+  }
+
+  const handleNavClick = () => {
+    setMobileMenuOpen(false)
+    setOpenDropdown(null)
   }
 
   return (
-    <nav className="bg-black border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-6">
+    <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center h-16">
           {/* LOGO */}
           <div className="flex items-center space-x-3">
             <NavLink
               to="/"
               end
-              className="text-2xl font-black text-white tracking-tighter hover:text-white/80 transition-colors"
+              onClick={handleNavClick}
+              className="text-xl sm:text-2xl font-black text-white tracking-tighter hover:text-white/80 transition-colors"
             >
               FITZONE
             </NavLink>
             <NavLink
               to="/shenron"
-              className="flex items-center space-x-1 opacity-0 hover:opacity-100 transition-opacity duration-300 group"
+              onClick={handleNavClick}
+              className="hidden sm:flex items-center space-x-1 opacity-0 hover:opacity-100 transition-opacity duration-300 group"
             >
               <Flame size={14} className="text-orange-500 animate-pulse" />
               <span className="text-xs font-bold text-orange-500 tracking-wider">SHENRON</span>
@@ -48,8 +61,7 @@ function Navbar() {
             </NavLink>
           </div>
 
-          {/* MENÚ */}
-          <ul className="flex items-center space-x-1">
+          <ul className="hidden lg:flex items-center space-x-1">
             {!isAuthenticated && (
               <>
                 <li>
@@ -81,7 +93,6 @@ function Navbar() {
 
             {isAuthenticated && (
               <>
-                {/* Inicio */}
                 <li>
                   <NavLink
                     to="/"
@@ -97,7 +108,6 @@ function Navbar() {
                   </NavLink>
                 </li>
 
-                {/* ADMIN */}
                 {Array.isArray(user?.rol) && user.rol.includes("admin") && (
                   <>
                     <li>
@@ -126,8 +136,6 @@ function Navbar() {
                         <span>EMPLEADOS</span>
                       </NavLink>
                     </li>
-
-                    {/* 🔹 DASHBOARD */}
                     <li>
                       <NavLink
                         to="/dashboard"
@@ -144,25 +152,22 @@ function Navbar() {
                   </>
                 )}
 
-                {/* PERFIL */}
-                {Array.isArray(user?.rol) &&
-                  (user.rol.includes("cliente") || user.rol.includes("admin")) && (
-                    <li>
-                      <NavLink
-                        to="/user/profile"
-                        className={({ isActive }) =>
-                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                            isActive ? "text-white bg-white/5" : ""
-                          }`
-                        }
-                      >
-                        <User size={16} />
-                        <span>PERFIL</span>
-                      </NavLink>
-                    </li>
-                  )}
+                {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                  <li>
+                    <NavLink
+                      to="/user/profile"
+                      className={({ isActive }) =>
+                        `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                          isActive ? "text-white bg-white/5" : ""
+                        }`
+                      }
+                    >
+                      <User size={16} />
+                      <span>PERFIL</span>
+                    </NavLink>
+                  </li>
+                )}
 
-                {/* PRODUCTOS / CARRITO */}
                 {Array.isArray(user?.rol) &&
                   (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
                     <>
@@ -198,7 +203,6 @@ function Navbar() {
                           <ChevronDown size={14} className="ml-1" />
                         </NavLink>
 
-                        {/* Dropdown */}
                         {openDropdown === "carrito" && (
                           <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                             <NavLink
@@ -218,7 +222,6 @@ function Navbar() {
                     </>
                   )}
 
-                {/* ENVÍOS */}
                 {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
                   <>
                     <li
@@ -269,7 +272,7 @@ function Navbar() {
                         <span>PANEL</span>
                       </NavLink>
                     </li>
-                     <li>
+                    <li>
                       <NavLink
                         to="/promocion"
                         className={({ isActive }) =>
@@ -285,7 +288,6 @@ function Navbar() {
                   </>
                 )}
 
-                {/* SALIR */}
                 <li>
                   <button
                     onClick={handleLogout}
@@ -298,7 +300,255 @@ function Navbar() {
               </>
             )}
           </ul>
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-white hover:bg-white/5 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-white/10 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <ul className="space-y-1">
+              {!isAuthenticated && (
+                <>
+                  <li>
+                    <NavLink
+                      to="/login"
+                      onClick={handleNavClick}
+                      className={({ isActive }) =>
+                        `block px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                          isActive ? "text-white bg-white/5" : ""
+                        }`
+                      }
+                    >
+                      INICIAR SESIÓN
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/register"
+                      onClick={handleNavClick}
+                      className={({ isActive }) =>
+                        `block px-4 py-3 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide text-center ${
+                          isActive ? "bg-white/90" : ""
+                        }`
+                      }
+                    >
+                      REGISTRARSE
+                    </NavLink>
+                  </li>
+                </>
+              )}
+
+              {isAuthenticated && (
+                <>
+                  <li>
+                    <NavLink
+                      to="/"
+                      end
+                      onClick={handleNavClick}
+                      className={({ isActive }) =>
+                        `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                          isActive ? "text-white bg-white/5" : ""
+                        }`
+                      }
+                    >
+                      <Home size={16} />
+                      <span>INICIO</span>
+                    </NavLink>
+                  </li>
+
+                  {Array.isArray(user?.rol) && user.rol.includes("admin") && (
+                    <>
+                      <li>
+                        <NavLink
+                          to="/admin-panel"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Settings size={16} />
+                          <span>ADMIN</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/register-employee"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Users size={16} />
+                          <span>EMPLEADOS</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/dashboard"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-blue-500/10" : ""
+                            }`
+                          }
+                        >
+                          <BarChart3 size={16} />
+                          <span>DASHBOARD</span>
+                        </NavLink>
+                      </li>
+                    </>
+                  )}
+
+                  {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                    <li>
+                      <NavLink
+                        to="/user/profile"
+                        onClick={handleNavClick}
+                        className={({ isActive }) =>
+                          `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
+                        }
+                      >
+                        <User size={16} />
+                        <span>PERFIL</span>
+                      </NavLink>
+                    </li>
+                  )}
+
+                  {Array.isArray(user?.rol) &&
+                    (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
+                      <>
+                        <li>
+                          <NavLink
+                            to="/producto"
+                            onClick={handleNavClick}
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <Package size={16} />
+                            <span>PRODUCTOS</span>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/carrito"
+                            onClick={handleNavClick}
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <ShoppingCart size={16} />
+                            <span>CARRITO</span>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/wishlist"
+                            onClick={handleNavClick}
+                            className={({ isActive }) =>
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
+                            }
+                          >
+                            <Heart size={16} />
+                            <span>WISHLIST</span>
+                          </NavLink>
+                        </li>
+                      </>
+                    )}
+
+                  {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
+                    <>
+                      <li>
+                        <NavLink
+                          to="/envio"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Truck size={16} />
+                          <span>ENVÍOS</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/envio/tarifas"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <DollarSign size={16} />
+                          <span>TARIFAS</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/empleado-panel"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Users size={16} />
+                          <span>PANEL</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/promocion"
+                          onClick={handleNavClick}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Users size={16} />
+                          <span>PROMOCION</span>
+                        </NavLink>
+                      </li>
+                    </>
+                  )}
+
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-2 w-full px-4 py-3 text-white/80 hover:text-white hover:bg-red-500/10 transition-colors text-sm font-medium tracking-wide"
+                    >
+                      <LogOut size={16} />
+                      <span>SALIR</span>
+                    </button>
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
+        )}
       </div>
     </nav>
   )

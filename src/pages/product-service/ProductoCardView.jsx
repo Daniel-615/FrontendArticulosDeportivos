@@ -6,6 +6,7 @@ import { getProductos } from "../../api-gateway/producto.crud.js"
 import { addToCart } from "../../api-gateway/carrito.crud.js"
 import { addToWishlist } from "../../api-gateway/wishlist.crud.js"
 import { toast } from "react-toastify"
+import { getImageUrl } from "../../utils/imageHelper.js"
 
 const ITEMS_PER_PAGE = 9
 
@@ -167,19 +168,19 @@ export default function ProductosCardView() {
   return (
     <div className="min-h-screen bg-black">
       <div className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-16 text-center">
-          <h1 className="text-5xl font-black text-white mb-2 tracking-tight">PRODUCTOS</h1>
-          <p className="text-white/60 text-sm tracking-wider uppercase">Equipamiento deportivo de calidad</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+          <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 tracking-tight">PRODUCTOS</h1>
+          <p className="text-white/60 text-xs sm:text-sm tracking-wider uppercase">Equipamiento deportivo de calidad</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex justify-center mb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="flex justify-center mb-8 sm:mb-12">
           <div className="w-full max-w-md">
             <input
               type="text"
               placeholder="BUSCAR PRODUCTOS..."
-              className="w-full bg-white/5 border border-white/20 text-white px-4 py-3 focus:outline-none focus:border-white/40 transition-colors placeholder:text-white/40"
+              className="w-full bg-white/5 border border-white/20 text-white px-4 py-3 focus:outline-none focus:border-white/40 transition-colors placeholder:text-white/40 text-sm sm:text-base"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -190,7 +191,7 @@ export default function ProductosCardView() {
           <div className="bg-red-500/20 border border-red-500/50 p-3 text-white mb-8 text-center text-sm">{error}</div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {productosFiltrados.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <p className="text-white/60 text-sm uppercase tracking-wide">No se encontraron productos</p>
@@ -200,7 +201,11 @@ export default function ProductosCardView() {
               const loadingWish = pendingWishlist.has(producto.id)
               const loadingCart = pendingCart.has(producto.id)
               const alreadyInWish = inWishlist.has(producto.id)
-              const imagenId = selectedColor[producto.id]?.imagenUrl || producto.colores?.[0]?.imagenUrl || null
+              const imagenPath = selectedColor[producto.id]?.imagenUrl || producto.colores?.[0]?.imagenUrl || null
+              const imagenUrl = getImageUrl(
+                imagenPath,
+                `/placeholder.svg?height=300&width=300&query=${encodeURIComponent(producto.nombre || "sports product")}`,
+              )
 
               return (
                 <div
@@ -209,9 +214,12 @@ export default function ProductosCardView() {
                 >
                   <div className="relative">
                     <img
-                      src={imagenId || "/placeholder.svg?height=300&width=300&query=sports product"}
+                      src={imagenUrl || "/placeholder.svg"}
                       alt={producto.nombre}
-                      className="w-full h-64 object-cover"
+                      className="w-full h-48 sm:h-64 object-cover"
+                      onError={(e) => {
+                        e.target.src = `/placeholder.svg?height=300&width=300&query=${encodeURIComponent(producto.nombre || "sports product")}`
+                      }}
                     />
                     <button
                       onClick={() => handleAddToWishlist(producto)}
@@ -226,17 +234,19 @@ export default function ProductosCardView() {
                     </button>
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <div className="mb-4">
-                      <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-tight">{producto.nombre}</h2>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-2xl font-black text-white">Q{producto.precio}</span>
-                        <div className="text-right">
+                      <h2 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase tracking-tight break-words">
+                        {producto.nombre}
+                      </h2>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
+                        <span className="text-xl sm:text-2xl font-black text-white">Q{producto.precio}</span>
+                        <div className="text-left sm:text-right">
                           <p className="text-sm font-semibold text-white/80">{producto.marca?.nombre}</p>
                           <p className="text-xs text-white/60 uppercase tracking-wide">{producto.categoria?.nombre}</p>
                         </div>
                       </div>
-                      <p className="text-white/60 text-sm leading-relaxed">{producto.descripcion}</p>
+                      <p className="text-white/60 text-sm leading-relaxed line-clamp-2">{producto.descripcion}</p>
                     </div>
 
                     <div className="mb-4">
@@ -252,6 +262,7 @@ export default function ProductosCardView() {
                                 : "border-white/20 hover:border-white/40"
                             }`}
                             style={{ backgroundColor: color.codigoHex }}
+                            aria-label={`Color ${color.nombre || color.codigoHex}`}
                           />
                         ))}
                       </div>
@@ -282,7 +293,7 @@ export default function ProductosCardView() {
                     <button
                       onClick={() => handleAddToCart(producto)}
                       disabled={loadingCart}
-                      className={`w-full bg-white text-black px-4 py-3 font-bold hover:bg-white/90 transition-colors tracking-wide ${
+                      className={`w-full bg-white text-black px-4 py-3 font-bold hover:bg-white/90 transition-colors tracking-wide text-sm sm:text-base ${
                         loadingCart ? "opacity-60 cursor-not-allowed" : ""
                       }`}
                     >
@@ -295,11 +306,11 @@ export default function ProductosCardView() {
           )}
         </div>
 
-        <div className="flex justify-center items-center gap-6 mt-12">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-8 sm:mt-12">
           <button
             onClick={handlePrevPage}
             disabled={page === 1}
-            className="px-6 py-3 bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full sm:w-auto px-6 py-3 bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
           >
             ANTERIOR
           </button>
@@ -311,7 +322,7 @@ export default function ProductosCardView() {
           <button
             onClick={handleNextPage}
             disabled={page === totalPages}
-            className="px-6 py-3 bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full sm:w-auto px-6 py-3 bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
           >
             SIGUIENTE
           </button>

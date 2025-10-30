@@ -9,6 +9,7 @@ import { calcularEnvioRequest } from "../api-gateway/tarifa.envio.crud.js"
 import { pay } from "../api-gateway/stripe.js"
 import MapDistancePicker from "../components/mapDistancePicker.jsx"
 import { getDeseosUsuario, consumirDeseo } from "../api-gateway/deseo.crud.js"
+import { getImageUrl } from "../utils/imageHelper.js"
 
 const WAREHOUSE_ANTIGUA = {
   name: "Bodega - Antigua Guatemala",
@@ -417,75 +418,82 @@ export default function CartPage() {
         ) : (
           <>
             <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-              {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white/10 border border-white/20 p-4 sm:p-6 hover:bg-white/[0.15] transition-colors"
-                >
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/5 border border-white/20 overflow-hidden flex-shrink-0">
-                      <img
-                        src={
-                          item.producto?.productoColor?.imagenUrl ||
-                          "/placeholder.svg?height=96&width=96&query=sports+product" ||
-                          "/placeholder.svg"
-                        }
-                        alt={item.producto?.nombre || "Producto"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+              {cartItems.map((item) => {
+                const imagenPath = item.producto?.productoColor?.imagenUrl
+                const imagenUrl = getImageUrl(imagenPath, "/generic-sports-product.png")
 
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-lg sm:text-xl font-bold text-white mb-2 tracking-tight break-words">
-                        {item.producto?.productoColor?.producto.nombre || "Producto no disponible"}
-                      </h2>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-white/60 text-sm">
-                        <span>
-                          PRECIO:{" "}
-                          <span className="text-white font-bold">
-                            Q{item.producto?.productoColor?.producto.precio ?? "0"}
-                          </span>
-                        </span>
-                        <span>
-                          TALLA: <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-4 w-full sm:w-auto">
-                      <div className="flex items-center gap-2 bg-white/5 border border-white/20 p-2 flex-1 sm:flex-initial">
-                        <button
-                          onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad - 1)}
-                          disabled={item.cantidad <= 1}
-                          className="p-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 text-white transition-colors"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.cantidad}
-                          onChange={(e) => handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))}
-                          className="w-12 sm:w-16 px-2 sm:px-3 py-2 text-center bg-white/5 text-white border border-white/20 focus:outline-none focus:border-white/40"
+                return (
+                  <div
+                    key={item.id}
+                    className="bg-white/10 border border-white/20 p-4 sm:p-6 hover:bg-white/[0.15] transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/5 border border-white/20 overflow-hidden flex-shrink-0">
+                        <img
+                          src={imagenUrl || "/placeholder.svg"}
+                          alt={item.producto?.nombre || "Producto"}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = "/generic-sports-product.png"
+                          }}
                         />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg sm:text-xl font-bold text-white mb-2 tracking-tight break-words">
+                          {item.producto?.productoColor?.producto.nombre || "Producto no disponible"}
+                        </h2>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-white/60 text-sm">
+                          <span>
+                            PRECIO:{" "}
+                            <span className="text-white font-bold">
+                              Q{item.producto?.productoColor?.producto.precio ?? "0"}
+                            </span>
+                          </span>
+                          <span>
+                            TALLA:{" "}
+                            <span className="text-white font-bold">{item.producto.tallaInfo?.valor || "N/A"}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-4 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/20 p-2 flex-1 sm:flex-initial">
+                          <button
+                            onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad - 1)}
+                            disabled={item.cantidad <= 1}
+                            className="p-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 text-white transition-colors"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.cantidad}
+                            onChange={(e) =>
+                              handleUpdate(item.producto_talla_color_id, Number.parseInt(e.target.value))
+                            }
+                            className="w-12 sm:w-16 px-2 sm:px-3 py-2 text-center bg-white/5 text-white border border-white/20 focus:outline-none focus:border-white/40"
+                          />
+                          <button
+                            onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad + 1)}
+                            className="p-2 bg-white/10 hover:bg-white/20 text-white transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
                         <button
-                          onClick={() => handleUpdate(item.producto_talla_color_id, item.cantidad + 1)}
-                          className="p-2 bg-white/10 hover:bg-white/20 text-white transition-colors"
+                          onClick={() => handleRemove(item.producto_talla_color_id)}
+                          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white border border-red-500/50 transition-colors flex-1 sm:flex-initial justify-center"
                         >
-                          <Plus className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" />
+                          <span className="text-sm font-medium uppercase">Eliminar</span>
                         </button>
                       </div>
-                      <button
-                        onClick={() => handleRemove(item.producto_talla_color_id)}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white border border-red-500/50 transition-colors flex-1 sm:flex-initial justify-center"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="text-sm font-medium uppercase">Eliminar</span>
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="bg-white/10 border border-white/20 p-4 sm:p-6 md:p-8">
@@ -585,20 +593,24 @@ export default function CartPage() {
 
               {quote && (
                 <div className="mt-4 sm:mt-6 p-4 sm:p-5 bg-white/5 border border-white/20">
-                  <div className="flex items-baseline justify-between mb-4">
-                    <h4 className="text-xl font-bold text-white">Envío estimado</h4>
+                  <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+                    <h4 className="text-lg sm:text-xl font-bold text-white">Envío estimado</h4>
                     <div className="text-right">
-                      <p className="text-white/60 text-sm">Distancia: {Number(quote.distancia_km).toFixed(2)} km</p>
+                      <p className="text-white/60 text-xs sm:text-sm">
+                        Distancia: {Number(quote.distancia_km).toFixed(2)} km
+                      </p>
                       {isEnvioGratis ? (
-                        <p className="text-emerald-300 font-bold text-lg">Envío GRATIS por promoción</p>
+                        <p className="text-emerald-300 font-bold text-base sm:text-lg">Envío GRATIS por promoción</p>
                       ) : (
-                        <p className="text-3xl font-bold text-white">Q{Number(quote.total_envio).toFixed(2)}</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-white">
+                          Q{Number(quote.total_envio).toFixed(2)}
+                        </p>
                       )}
                     </div>
                   </div>
 
                   {!isEnvioGratis && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-3 text-white/60 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-3 text-white/60 text-xs sm:text-sm">
                       <div>
                         Recargo por distancia:{" "}
                         <span className="font-semibold text-white">
@@ -624,18 +636,18 @@ export default function CartPage() {
                   )}
 
                   <details className="mt-4">
-                    <summary className="cursor-pointer text-white hover:text-white/80 text-sm sm:text-base">
+                    <summary className="cursor-pointer text-white hover:text-white/80 text-xs sm:text-sm sm:text-base">
                       Ver desglose por artículo
                     </summary>
                     <div className="mt-3 space-y-2">
                       {Array.isArray(quote.detalle) &&
                         quote.detalle.map((d, i) => (
                           <div key={i} className="p-3 bg-white/5 border border-white/10">
-                            <div className="flex items-center justify-between">
-                              <div className="text-white font-medium">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="text-white font-medium text-sm">
                                 {d.item?.nombre || `Item ${i + 1}`} × {d.item?.cantidad ?? 1}
                               </div>
-                              <div className="text-white font-semibold">
+                              <div className="text-white font-semibold text-sm">
                                 Q{Number(d?.costos?.total_item ?? 0).toFixed(2)}
                               </div>
                             </div>
@@ -650,7 +662,7 @@ export default function CartPage() {
                   </details>
 
                   <div className="mt-5">
-                    <label className="block text-white text-sm font-medium mb-2">
+                    <label className="block text-white text-xs sm:text-sm font-medium mb-2">
                       NIT para la factura (ingrese <span className="font-semibold">CF</span> si no desea facturar)
                     </label>
                     <input
@@ -658,18 +670,18 @@ export default function CartPage() {
                       placeholder="CF o NIT — p. ej., 1234567-8"
                       value={nit}
                       onChange={(e) => handleNitChange(e.target.value)}
-                      className={`w-full px-4 py-2 bg-white/5 text-white border ${
+                      className={`w-full px-4 py-2 bg-white/5 text-white border text-sm sm:text-base ${
                         nitError ? "border-red-400" : "border-white/20"
                       } focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent`}
                     />
-                    {nitError && <p className="mt-1 text-sm text-red-400">{nitError}</p>}
+                    {nitError && <p className="mt-1 text-xs sm:text-sm text-red-400">{nitError}</p>}
                   </div>
 
                   <div className="mt-4 text-right">
-                    <div className="text-white/60 text-sm sm:text-base">
+                    <div className="text-white/60 text-xs sm:text-sm sm:text-base">
                       Total productos {isDescPorc ? "(con descuento)" : ""}: Q{totalProductosConDescuento.toFixed(2)}
                     </div>
-                    <div className="text-lg sm:text-xl font-bold text-white">
+                    <div className="text-base sm:text-lg sm:text-xl font-bold text-white">
                       Total a pagar aprox.: Q{totalConEnvio}
                     </div>
                   </div>

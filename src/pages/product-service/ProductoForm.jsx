@@ -1,4 +1,4 @@
-
+"use client"
 
 import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -7,15 +7,16 @@ import SidebarEmpleado from "../../components/sideBar.jsx"
 import { getProductos, deleteProducto, updateProducto } from "../../api-gateway/producto.crud.js"
 
 export default function ProductosCrudForm() {
+  // Estado de datos y UI
   const [productos, setProductos] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10) 
+  const [limit, setLimit] = useState(10) // tu API ya usa 10
   const [loading, setLoading] = useState(false)
   const [editando, setEditando] = useState(null)
   const [error, setError] = useState(null)
 
-
+  // React Hook Form
   const {
     register,
     handleSubmit,
@@ -28,6 +29,7 @@ export default function ProductosCrudForm() {
 
   useEffect(() => {
     cargarProductos(page, limit)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit])
 
   const cargarProductos = async (pageArg = 1, limitArg = limit) => {
@@ -35,6 +37,7 @@ export default function ProductosCrudForm() {
     setError(null)
     try {
       const response = await getProductos({ page: pageArg, limit: limitArg })
+      // Soporta respuesta {success, data:{...}} o {success, ...}
       const payload = response?.data ?? response
       if (response?.success && payload) {
         setProductos(payload.productos ?? [])
@@ -60,6 +63,7 @@ export default function ProductosCrudForm() {
     try {
       const response = await deleteProducto(id)
       if (response?.success) {
+        // Si borraste el último elemento visible, retrocede una página si aplica
         const nextPage = productos.length === 1 && page > 1 ? page - 1 : page
         await cargarProductos(nextPage, limit)
       }
@@ -74,7 +78,6 @@ export default function ProductosCrudForm() {
     setValue("descripcion", producto.descripcion ?? "")
     setValue("precio", producto.precio != null ? Number.parseFloat(producto.precio) : "")
     setValue("stock", producto.stock != null ? Number.parseInt(producto.stock) : "")
-
     setValue("peso", producto.peso ?? "")
     setValue("ancho", producto.ancho ?? "")
     setValue("alto", producto.alto ?? "")
@@ -97,7 +100,7 @@ export default function ProductosCrudForm() {
       if (response?.success) {
         setEditando(null)
         reset()
-        cargarProductos(page, limit) 
+        cargarProductos(page, limit) // recarga la página actual
       }
     } catch {
       setError("Error al actualizar el producto.")
@@ -105,6 +108,7 @@ export default function ProductosCrudForm() {
   }
 
   const Pagination = () => {
+    // Rango compacto: 1 … (page-1, page, page+1) … total
     const pages = []
     const show = (p) => p >= 1 && p <= totalPages
     const push = (p) => pages.push(p)
@@ -115,7 +119,13 @@ export default function ProductosCrudForm() {
     if (page + 2 < totalPages - 1) push("right-ellipsis")
     if (totalPages > 1) push(totalPages)
 
-    const cleaned = pages.filter((p, idx) => pages.indexOf(p) === idx)
+    const cleaned = pages.filter((p, i) => pages.indexOf(p) === i)
+
+    const baseBtn =
+      "inline-flex items-center justify-center h-9 w-9 rounded-md border border-black text-sm leading-none transition-colors"
+    const inactive = "bg-white text-black hover:bg-gray-100"
+    const active = "bg-black text-white"
+    const disabled = "opacity-50 cursor-not-allowed"
 
     return (
       <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -129,9 +139,10 @@ export default function ProductosCrudForm() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1 || loading}
-            className="px-3 py-2 border-2 border-black disabled:opacity-40 hover:bg-gray-100"
+            aria-label="Página anterior"
+            className={`${baseBtn} ${page === 1 || loading ? disabled : inactive}`}
           >
-            Anterior
+            «
           </button>
 
           {cleaned.map((p, i) =>
@@ -140,14 +151,17 @@ export default function ProductosCrudForm() {
                 key={`p-${p}-${i}`}
                 onClick={() => setPage(p)}
                 disabled={loading}
-                className={`px-3 py-2 border-2 ${
-                  p === page ? "bg-black text-white border-black" : "border-black hover:bg-gray-100"
-                }`}
+                aria-label={`Página ${p}`}
+                className={`${baseBtn} ${p === page ? active : inactive}`}
               >
                 {p}
               </button>
             ) : (
-              <span key={p} className="px-2">
+              <span
+                key={p}
+                className="inline-flex items-center justify-center h-9 w-9 text-gray-500 select-none"
+                aria-hidden="true"
+              >
                 …
               </span>
             )
@@ -156,9 +170,10 @@ export default function ProductosCrudForm() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages || loading}
-            className="px-3 py-2 border-2 border-black disabled:opacity-40 hover:bg-gray-100"
+            aria-label="Página siguiente"
+            className={`${baseBtn} ${page === totalPages || loading ? disabled : inactive}`}
           >
-            Siguiente
+            »
           </button>
 
           <select
@@ -168,7 +183,8 @@ export default function ProductosCrudForm() {
               setLimit(parseInt(e.target.value))
             }}
             disabled={loading}
-            className="ml-2 px-2 py-2 border-2 border-black bg-white"
+            className="ml-2 h-9 px-2 rounded-md border border-black bg-white text-sm"
+            aria-label="Elementos por página"
           >
             {[6, 10, 12, 18, 24].map((n) => (
               <option key={n} value={n}>

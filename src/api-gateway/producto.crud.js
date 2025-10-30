@@ -20,18 +20,14 @@ export const createProducto = async (producto) => {
   }
 };
 
-export const getProductos = async () => {
+export const getProductos = async ({ page = 1, limit = 10 } = {}) => {
   try {
-    const response = await axios.get(
-      `${API_GATEWAY}product`,
-      { withCredentials: true ,
-        params: { page, limit },
-      },
-      
-    );
+    const response = await axios.get(`${API_GATEWAY}product`, {
+      withCredentials: true,
+      params: { page, limit },
+    });
     return { success: true, data: response.data };
   } catch (error) {
-
     return handleError(error);
   }
 };

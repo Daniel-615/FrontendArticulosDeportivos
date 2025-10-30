@@ -269,7 +269,6 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
             {!id && (
               <div className="grid gap-6 md:grid-cols-2 mb-6">
                 <div>
-                  <label className="block mb-2 font-bold uppercase text-sm">Seleccionar producto *</label>
                   <SearchableSelect
                     label="Seleccionar producto"
                     required
@@ -285,7 +284,6 @@ export default function ProductoColorForm({ id: initialId, onSuccess }) {
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-bold uppercase text-sm">Seleccionar color *</label>
                   <SearchableSelect
                     label="Seleccionar color"
                     required

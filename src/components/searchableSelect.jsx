@@ -1,11 +1,11 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown, Check, Search } from "lucide-react"
+import { ChevronDown, Check, Search, X } from "lucide-react"
 
 export default function SearchableSelect({
   value,
   onChange,
-  options = [], // [{value, label}]
+  options = [],            // [{ value, label }]
   placeholder = "Selecciona...",
   label = "",
   required = false,
@@ -13,10 +13,14 @@ export default function SearchableSelect({
   className = "",
   buttonClassName = "",
   listClassName = "",
+  clearable = true,        // permite limpiar el valor
+  maxListHeight = 256,     // px (coincide con max-h-64)
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [dropUp, setDropUp] = useState(false) // abre hacia arriba si no hay espacio
+  const rootRef = useRef(null)
   const btnRef = useRef(null)
   const listRef = useRef(null)
   const inputRef = useRef(null)
@@ -32,15 +36,42 @@ export default function SearchableSelect({
     return options.filter((o) => o.label.toLowerCase().includes(q))
   }, [options, query])
 
+  // ---- posicionamiento (flip up si no hay espacio)
+  useEffect(() => {
+    if (!open) return
+    const el = rootRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    const needsUp = spaceBelow < maxListHeight && spaceAbove > spaceBelow
+    setDropUp(needsUp)
+  }, [open, maxListHeight])
+
+  // ---- foco & estado al abrir/cerrar
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 0)
+      // primer elemento activo
+      setActiveIndex(filtered.length ? 0 : -1)
     } else {
       setQuery("")
       setActiveIndex(-1)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // ---- click fuera para cerrar
+  useEffect(() => {
+    if (!open) return
+    const onDocClick = (e) => {
+      if (!rootRef.current?.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener("mousedown", onDocClick)
+    return () => document.removeEventListener("mousedown", onDocClick)
+  }, [open])
+
+  // ---- teclado
   const handleKeyDown = (e) => {
     if (!open) {
       if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
@@ -50,27 +81,33 @@ export default function SearchableSelect({
       return
     }
 
+    if (["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key)) {
+      e.preventDefault() // evita “scroll bleed”
+    }
+
     if (e.key === "Escape") {
-      e.preventDefault()
       setOpen(false)
       btnRef.current?.focus()
       return
     }
 
     if (e.key === "ArrowDown") {
-      e.preventDefault()
-      setActiveIndex((i) => Math.min(i + 1, filtered.length - 1))
-      scrollIntoView(activeIndex + 1)
+      setActiveIndex((i) => {
+        const next = Math.min((i < 0 ? -1 : i) + 1, filtered.length - 1)
+        scrollIntoView(next)
+        return next
+      })
     }
 
     if (e.key === "ArrowUp") {
-      e.preventDefault()
-      setActiveIndex((i) => Math.max(i - 1, 0))
-      scrollIntoView(activeIndex - 1)
+      setActiveIndex((i) => {
+        const prev = Math.max((i < 0 ? 0 : i) - 1, 0)
+        scrollIntoView(prev)
+        return prev
+      })
     }
 
     if (e.key === "Enter") {
-      e.preventDefault()
       if (filtered[activeIndex]) {
         onChange(filtered[activeIndex].value)
         setOpen(false)
@@ -94,30 +131,43 @@ export default function SearchableSelect({
   }
 
   return (
-    <div className={`relative ${className}`} onKeyDown={handleKeyDown}>
+    <div ref={rootRef} className={`relative ${className}`} onKeyDown={handleKeyDown}>
       {label && (
         <label className="block mb-2 font-bold uppercase text-sm">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
-      <button
-        ref={btnRef}
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between p-3 bg-white text-black border-2 border-white focus:outline-none ${buttonClassName}`}
-      >
-        <span className="truncate">{selected ? selected.label : `-- ${placeholder} --`}</span>
-        <ChevronDown className="w-4 h-4 shrink-0" />
-      </button>
+      <div className="relative">
+        <button
+          ref={btnRef}
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          className={`w-full flex items-center justify-between p-3 bg-white text-black border-2 border-white focus:outline-none ${buttonClassName}`}
+        >
+          <span className="truncate">{selected ? selected.label : `-- ${placeholder} --`}</span>
+          <div className="flex items-center gap-1">
+            {clearable && selected && (
+              <X
+                className="w-4 h-4 opacity-60 hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange(undefined)
+                }}
+              />
+            )}
+            <ChevronDown className="w-4 h-4 shrink-0" />
+          </div>
+        </button>
+      </div>
 
       {error && <p className="text-red-400 text-sm mt-1 font-medium">{error}</p>}
 
       {open && (
         <div
-          className={`absolute z-50 mt-1 w-full bg-white border-2 border-black shadow-lg`}
+          className={`absolute z-[9999] ${dropUp ? "bottom-full mb-1" : "mt-1"} w-full bg-white border-2 border-black shadow-lg`}
           role="listbox"
         >
           {/* buscador */}
@@ -127,8 +177,10 @@ export default function SearchableSelect({
               ref={inputRef}
               value={query}
               onChange={(e) => {
-                setQuery(e.target.value)
-                setActiveIndex(0)
+                const q = e.target.value
+                setQuery(q)
+                // resalta el primer match al escribir
+                setActiveIndex(q ? 0 : filtered.length ? 0 : -1)
               }}
               placeholder="Buscar…"
               className="w-full outline-none bg-transparent text-sm"
@@ -138,7 +190,8 @@ export default function SearchableSelect({
           {/* lista */}
           <div
             ref={listRef}
-            className={`max-h-64 overflow-y-auto ${listClassName}`}
+            style={{ maxHeight: maxListHeight }}
+            className={`overflow-y-auto ${listClassName}`}
           >
             {filtered.length === 0 ? (
               <div className="px-3 py-3 text-sm text-gray-600">Sin resultados</div>
@@ -152,9 +205,8 @@ export default function SearchableSelect({
                     data-index={i}
                     role="option"
                     aria-selected={selectedItem}
-                    className={`flex items-center justify-between px-3 py-2 cursor-pointer text-sm
-                       ${active ? "bg-black text-white" : "hover:bg-gray-100"}
-                    `}
+                    className={`flex items-center justify-between px-3 py-2 cursor-pointer text-sm select-none
+                      ${active ? "bg-black text-white" : "hover:bg-gray-100"}`}
                     onMouseEnter={() => setActiveIndex(i)}
                     onClick={() => {
                       onChange(o.value)

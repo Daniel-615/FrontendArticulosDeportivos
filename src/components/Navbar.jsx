@@ -140,7 +140,7 @@ function Navbar() {
                         </NavLink>
 
                         {openDropdown === "admin" && (
-                          <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                          <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-[100]">
                             <NavLink
                               to="/register-employee"
                               onClick={handleNavClick}
@@ -234,7 +234,7 @@ function Navbar() {
                             </NavLink>
 
                             {openDropdown === "carrito" && (
-                              <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                              <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-[100]">
                                 <NavLink
                                   to="/wishlist"
                                   onClick={handleNavClick}
@@ -274,7 +274,7 @@ function Navbar() {
                           </NavLink>
 
                           {openDropdown === "envios" && (
-                            <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                            <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-[100]">
                               <NavLink
                                 to="/envio/tarifas"
                                 onClick={handleNavClick}

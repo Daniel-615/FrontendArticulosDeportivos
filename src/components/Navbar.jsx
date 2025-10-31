@@ -26,6 +26,8 @@ function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const isAdmin = Array.isArray(user?.rol) && user.rol.includes("admin")
+
   const handleLogout = async () => {
     await logout()
     setMobileMenuOpen(false)
@@ -38,7 +40,6 @@ function Navbar() {
 
   return (
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
-      {/* Aumenta el ancho útil del contenedor */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center h-16">
           {/* LOGO */}
@@ -62,10 +63,10 @@ function Navbar() {
             </NavLink>
           </div>
 
-          {/* NAV DESKTOP: scroll horizontal si no caben todas las rutas */}
+          {/* NAV DESKTOP */}
           <div className="hidden lg:flex flex-1 items-stretch">
-              <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full pb-1 -mb-1">
-                <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
+            <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full pb-1 -mb-1">
+              <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
                 {!isAuthenticated && (
                   <>
                     <li>
@@ -112,7 +113,7 @@ function Navbar() {
                       </NavLink>
                     </li>
 
-                    {Array.isArray(user?.rol) && user.rol.includes("admin") && (
+                    {isAdmin && (
                       <>
                         <li>
                           <NavLink
@@ -154,7 +155,6 @@ function Navbar() {
                           </NavLink>
                         </li>
 
-                        {/* DOCUMENTACIÓN (admin) */}
                         <li>
                           <NavLink
                             to="/documentation"
@@ -171,7 +171,7 @@ function Navbar() {
                       </>
                     )}
 
-                    {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                    {Array.isArray(user?.rol) && (user.rol.includes("cliente") || isAdmin) && (
                       <li>
                         <NavLink
                           to="/user/profile"
@@ -188,7 +188,7 @@ function Navbar() {
                     )}
 
                     {Array.isArray(user?.rol) &&
-                      (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
+                      (user.rol.includes("cliente") || isAdmin || user.rol.includes("empleado")) && (
                         <>
                           <li>
                             <NavLink
@@ -241,7 +241,7 @@ function Navbar() {
                         </>
                       )}
 
-                    {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
+                    {Array.isArray(user?.rol) && (user.rol.includes("empleado") || isAdmin) && (
                       <>
                         <li
                           className="relative"
@@ -318,7 +318,6 @@ function Navbar() {
                     </li>
                   </>
                 )}
-                
               </ul>
             </div>
           </div>
@@ -333,9 +332,73 @@ function Navbar() {
           </button>
         </div>
 
+        {/* ===== ADMIN QUICKBAR (Desktop) ===== */}
+        {isAuthenticated && isAdmin && (
+          <div className="hidden lg:block border-t border-white/10">
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
+              <ul className="flex items-center gap-2 py-1 overflow-x-auto whitespace-nowrap">
+                <li>
+                  <NavLink
+                    to="/dashboard"
+                    className={({ isActive }) =>
+                      `inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all
+                       ${isActive ? "bg-blue-500/15 border-blue-400/40 text-white" : "bg-white/5 border-white/10 text-white/80 hover:text-white"}`
+                    }
+                  >
+                    <BarChart3 size={14} />
+                    Dashboard
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/documentation"
+                    className={({ isActive }) =>
+                      `inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all
+                       ${isActive ? "bg-purple-500/15 border-purple-400/40 text-white" : "bg-white/5 border-white/10 text-white/80 hover:text-white"}`
+                    }
+                  >
+                    <BookOpen size={14} />
+                    Docs
+                  </NavLink>
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+
         {/* MENÚ MÓVIL */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-white/10 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            {/* ===== ADMIN QUICKBAR (Mobile) ===== */}
+            {isAuthenticated && isAdmin && (
+              <div className="px-4 pb-3">
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  <NavLink
+                    to="/dashboard"
+                    onClick={handleNavClick}
+                    className={({ isActive }) =>
+                      `inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all
+                       ${isActive ? "bg-blue-500/15 border-blue-400/40 text-white" : "bg-white/5 border-white/10 text-white/80 hover:text-white"}`
+                    }
+                  >
+                    <BarChart3 size={14} />
+                    Dashboard
+                  </NavLink>
+                  <NavLink
+                    to="/documentation"
+                    onClick={handleNavClick}
+                    className={({ isActive }) =>
+                      `inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide border transition-all
+                       ${isActive ? "bg-purple-500/15 border-purple-400/40 text-white" : "bg-white/5 border-white/10 text-white/80 hover:text-white"}`
+                    }
+                  >
+                    <BookOpen size={14} />
+                    Docs
+                  </NavLink>
+                </div>
+              </div>
+            )}
+
             <ul className="space-y-1">
               {!isAuthenticated && (
                 <>
@@ -386,7 +449,7 @@ function Navbar() {
                     </NavLink>
                   </li>
 
-                  {Array.isArray(user?.rol) && user.rol.includes("admin") && (
+                  {isAdmin && (
                     <>
                       <li>
                         <NavLink
@@ -447,7 +510,7 @@ function Navbar() {
                     </>
                   )}
 
-                  {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
+                  {Array.isArray(user?.rol) && (user.rol.includes("cliente") || isAdmin) && (
                     <li>
                       <NavLink
                         to="/user/profile"
@@ -465,7 +528,7 @@ function Navbar() {
                   )}
 
                   {Array.isArray(user?.rol) &&
-                    (user.rol.includes("cliente") || user.rol.includes("admin") || user.rol.includes("empleado")) && (
+                    (user.rol.includes("cliente") || isAdmin || user.rol.includes("empleado")) && (
                       <>
                         <li>
                           <NavLink
@@ -512,7 +575,7 @@ function Navbar() {
                       </>
                     )}
 
-                  {Array.isArray(user?.rol) && (user.rol.includes("empleado") || user.rol.includes("admin")) && (
+                  {Array.isArray(user?.rol) && (user.rol.includes("empleado") || isAdmin) && (
                     <>
                       <li>
                         <NavLink

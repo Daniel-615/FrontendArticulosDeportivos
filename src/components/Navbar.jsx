@@ -126,11 +126,18 @@ function Navbar() {
                         onMouseEnter={() => handleMouseEnter("admin")}
                         onMouseLeave={handleMouseLeave}
                       >
-                        <button className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide">
+                        <NavLink
+                          to="/admin-panel"
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
                           <Settings size={16} />
                           <span>ADMIN</span>
                           <ChevronDown size={14} className="ml-1" />
-                        </button>
+                        </NavLink>
 
                         {openDropdown === "admin" && (
                           <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">

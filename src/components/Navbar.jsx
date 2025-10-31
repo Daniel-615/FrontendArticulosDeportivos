@@ -23,7 +23,7 @@ import {
 
 function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
-  const [openDropdown, setOpenDropdown] = useState(null)
+  const [openDropdown, setOpenDropdown] = useState(null) 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isAdmin = Array.isArray(user?.rol) && user.rol.includes("admin")
@@ -77,7 +77,9 @@ function Navbar() {
                       <NavLink
                         to="/login"
                         className={({ isActive }) =>
-                          `px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                          `px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
                         }
                       >
                         INICIAR SESIÓN
@@ -87,7 +89,9 @@ function Navbar() {
                       <NavLink
                         to="/register"
                         className={({ isActive }) =>
-                          `px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide ${isActive ? "bg-white/90" : ""}`
+                          `px-4 py-2 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide ${
+                            isActive ? "bg-white/90" : ""
+                          }`
                         }
                       >
                         REGISTRARSE
@@ -103,7 +107,9 @@ function Navbar() {
                         to="/"
                         end
                         className={({ isActive }) =>
-                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                          `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
                         }
                       >
                         <Home size={16} />
@@ -111,84 +117,81 @@ function Navbar() {
                       </NavLink>
                     </li>
 
-                    {/* ADMIN como trigger con flecha y submenu Dashboard/Docs */}
                     {isAdmin && (
-                      <>
-                        {/* Link a Admin Panel + botón flecha que despliega submenu */}
-                        <li className="relative flex items-stretch">
-                          <NavLink
-                            to="/admin-panel"
-                            className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
-                            }
-                          >
-                            <Settings size={16} />
-                            <span>ADMIN</span>
-                          </NavLink>
+                      <li className="relative">
+                        <button
+                          type="button"
+                          onClick={() => toggleDropdown("admin")}
+                          onMouseEnter={() => setOpenDropdown("admin")}
+                          className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
+                          aria-haspopup="menu"
+                          aria-expanded={openDropdown === "admin"}
+                        >
+                          <Settings size={16} />
+                          <span>ADMIN</span>
+                          <ChevronDown size={14} className="ml-1" />
+                        </button>
 
-                          {/* Botón flecha (no navega) */}
-                          <button
-                            type="button"
-                            aria-haspopup="menu"
-                            aria-expanded={openDropdown === "admin"}
-                            onClick={() => toggleDropdown("admin")}
-                            className="px-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                        {openDropdown === "admin" && (
+                          <div
+                            className="absolute top-full left-0 mt-0 w-56 bg-black border border-white/10 shadow-xl z-50"
+                            onMouseLeave={() => setOpenDropdown(null)}
                           >
-                            <ChevronDown size={14} />
-                          </button>
+                            <NavLink
+                              to="/admin-panel"
+                              onClick={handleNavClick}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-4 py-3 text-sm font-medium tracking-wide text-white/80 hover:text-white hover:bg-white/5 ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
+                              }
+                            >
+                              <Users size={16} />
+                              <span>Admin Panel</span>
+                            </NavLink>
+                            <NavLink
+                              to="/dashboard"
+                              onClick={handleNavClick}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-4 py-3 text-sm font-medium tracking-wide text-white/80 hover:text-white hover:bg-blue-500/10 ${
+                                  isActive ? "text-white bg-blue-500/10" : ""
+                                }`
+                              }
+                            >
+                              <BarChart3 size={16} />
+                              <span>Dashboard</span>
+                            </NavLink>
+                            <NavLink
+                              to="/documentation"
+                              onClick={handleNavClick}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-4 py-3 text-sm font-medium tracking-wide text-white/80 hover:text-white hover:bg-purple-500/10 ${
+                                  isActive ? "text-white bg-purple-500/10" : ""
+                                }`
+                              }
+                            >
+                              <BookOpen size={16} />
+                              <span>Docs</span>
+                            </NavLink>
+                          </div>
+                        )}
+                      </li>
+                    )}
 
-                          {/* Submenu: Dashboard y Docs */}
-                          {openDropdown === "admin" && (
-                            <div className="absolute top-full left-0 mt-0 w-56 bg-black border border-white/10 shadow-xl z-50">
-                              <NavLink
-                                to="/dashboard"
-                                onClick={handleNavClick}
-                                className={({ isActive }) =>
-                                  `flex items-center gap-2 px-4 py-3 text-sm font-medium tracking-wide text-white/80 hover:text-white hover:bg-blue-500/10 ${isActive ? "text-white bg-blue-500/10" : ""}`
-                                }
-                              >
-                                <BarChart3 size={16} />
-                                <span>Dashboard</span>
-                              </NavLink>
-                              <NavLink
-                                to="/documentation"
-                                onClick={handleNavClick}
-                                className={({ isActive }) =>
-                                  `flex items-center gap-2 px-4 py-3 text-sm font-medium tracking-wide text-white/80 hover:text-white hover:bg-purple-500/10 ${isActive ? "text-white bg-purple-500/10" : ""}`
-                                }
-                              >
-                                <BookOpen size={16} />
-                                <span>Docs</span>
-                              </NavLink>
-                              {/* Si quieres también aquí Empleados, descomenta:
-                              <NavLink
-                                to="/register-employee"
-                                onClick={handleNavClick}
-                                className={({ isActive }) =>
-                                  `flex items-center gap-2 px-4 py-3 text-sm font-medium tracking-wide text-white/80 hover:text-white hover:bg-white/5 ${isActive ? "text-white bg-white/5" : ""}`
-                                }
-                              >
-                                <Users size={16} />
-                                <span>Empleados</span>
-                              </NavLink>
-                              */}
-                            </div>
-                          )}
-                        </li>
-
-                        {/* Empleados se queda como ítem normal (si quieres meterlo al submenu, mueve el <NavLink/> arriba y elimina este li) */}
-                        <li>
-                          <NavLink
-                            to="/register-employee"
-                            className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
-                            }
-                          >
-                            <Users size={16} />
-                            <span>EMPLEADOS</span>
-                          </NavLink>
-                        </li>
-                      </>
+                    {isAdmin && (
+                      <li>
+                        <NavLink
+                          to="/register-employee"
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Users size={16} />
+                          <span>EMPLEADOS</span>
+                        </NavLink>
+                      </li>
                     )}
 
                     {Array.isArray(user?.rol) && (user.rol.includes("cliente") || isAdmin) && (
@@ -196,7 +199,9 @@ function Navbar() {
                         <NavLink
                           to="/user/profile"
                           className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
                           }
                         >
                           <User size={16} />
@@ -212,15 +217,15 @@ function Navbar() {
                             <NavLink
                               to="/producto"
                               className={({ isActive }) =>
-                                `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                                `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
                               }
                             >
                               <Package size={16} />
                               <span>PRODUCTOS</span>
                             </NavLink>
                           </li>
-
-                          {/* CARRITO (Dropdown) */}
                           <li
                             className="relative"
                             onMouseEnter={() => setOpenDropdown("carrito")}
@@ -229,7 +234,9 @@ function Navbar() {
                             <NavLink
                               to="/carrito"
                               className={({ isActive }) =>
-                                `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                                `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
                               }
                             >
                               <ShoppingCart size={16} />
@@ -242,7 +249,9 @@ function Navbar() {
                                 <NavLink
                                   to="/wishlist"
                                   className={({ isActive }) =>
-                                    `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                                    `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                      isActive ? "text-white bg-white/5" : ""
+                                    }`
                                   }
                                 >
                                   <Heart size={16} />
@@ -253,17 +262,16 @@ function Navbar() {
                           </li>
                         </>
                       )}
-
-                    {/* ENVÍOS con flecha (dropdown) solo para empleados/admin */}
                     {Array.isArray(user?.rol) && (user.rol.includes("empleado") || isAdmin) && (
                       <>
                         <li className="relative">
-                          {/* Trigger que no navega, solo despliega */}
                           <button
                             type="button"
                             onClick={() => toggleDropdown("envios")}
                             onMouseEnter={() => setOpenDropdown("envios")}
                             className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
+                            aria-haspopup="menu"
+                            aria-expanded={openDropdown === "envios"}
                           >
                             <Truck size={16} />
                             <span>ENVÍOS</span>
@@ -279,7 +287,9 @@ function Navbar() {
                                 to="/envio"
                                 onClick={handleNavClick}
                                 className={({ isActive }) =>
-                                  `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                                  `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                    isActive ? "text-white bg-white/5" : ""
+                                  }`
                                 }
                               >
                                 <Truck size={16} />
@@ -289,11 +299,13 @@ function Navbar() {
                                 to="/envio/tarifas"
                                 onClick={handleNavClick}
                                 className={({ isActive }) =>
-                                  `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                                  `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                    isActive ? "text-white bg-white/5" : ""
+                                  }`
                                 }
                               >
                                 <DollarSign size={16} />
-                                <span>Tarifas</span>
+                                <span>TARIFAS</span>
                               </NavLink>
                             </div>
                           )}
@@ -303,7 +315,9 @@ function Navbar() {
                           <NavLink
                             to="/empleado-panel"
                             className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
                             }
                           >
                             <Users size={16} />
@@ -314,7 +328,9 @@ function Navbar() {
                           <NavLink
                             to="/promocion"
                             className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
                             }
                           >
                             <TicketPercent size={16} />
@@ -349,11 +365,9 @@ function Navbar() {
           </button>
         </div>
 
-        {/* (Quité el Admin Quickbar para que Dashboard/Docs no aparezcan arriba) */}
-
         {/* MENÚ MÓVIL */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-top border-white/10 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="lg:hidden border-t border-white/10 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <ul className="space-y-1">
               {!isAuthenticated && (
                 <>
@@ -362,7 +376,9 @@ function Navbar() {
                       to="/login"
                       onClick={handleNavClick}
                       className={({ isActive }) =>
-                        `block px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                        `block px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                          isActive ? "text-white bg-white/5" : ""
+                        }`
                       }
                     >
                       INICIAR SESIÓN
@@ -373,7 +389,9 @@ function Navbar() {
                       to="/register"
                       onClick={handleNavClick}
                       className={({ isActive }) =>
-                        `block px-4 py-3 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide text-center ${isActive ? "bg-white/90" : ""}`
+                        `block px-4 py-3 bg-white text-black hover:bg-white/90 transition-colors text-sm font-bold tracking-wide text-center ${
+                          isActive ? "bg-white/90" : ""
+                        }`
                       }
                     >
                       REGISTRARSE
@@ -390,80 +408,77 @@ function Navbar() {
                       end
                       onClick={handleNavClick}
                       className={({ isActive }) =>
-                        `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                        `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                          isActive ? "text-white bg-white/5" : ""
+                        }`
                       }
                     >
                       <Home size={16} />
                       <span>INICIO</span>
                     </NavLink>
                   </li>
+
+                  {/* ADMIN (mobile) — acordeón */}
                   {isAdmin && (
-                    <>
-                      <li>
-                        <div className="flex items-center">
-                          <NavLink
-                            to="/admin-panel"
-                            onClick={handleNavClick}
-                            className={({ isActive }) =>
-                              `flex-1 flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
-                            }
-                          >
-                            <Settings size={16} />
-                            <span>ADMIN</span>
-                          </NavLink>
-                          <button
-                            type="button"
-                            onClick={() => toggleDropdown("admin-mobile")}
-                            className="px-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                            aria-expanded={openDropdown === "admin-mobile"}
-                          >
-                            <ChevronDown size={16} />
-                          </button>
-                        </div>
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => toggleDropdown("admin-mobile")}
+                        className="w-full flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide"
+                        aria-expanded={openDropdown === "admin-mobile"}
+                      >
+                        <Settings size={16} />
+                        <span>ADMIN</span>
+                        <ChevronDown size={16} className="ml-auto" />
+                      </button>
 
-                        {openDropdown === "admin-mobile" && (
-                          <ul className="ml-8 mt-1 mb-2 space-y-1">
-                            <li>
-                              <NavLink
-                                to="/dashboard"
-                                onClick={handleNavClick}
-                                className={({ isActive }) =>
-                                  `flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-blue-500/10 text-sm rounded ${isActive ? "text-white bg-blue-500/10" : ""}`
-                                }
-                              >
-                                <BarChart3 size={16} />
-                                <span>Dashboard</span>
-                              </NavLink>
-                            </li>
-                            <li>
-                              <NavLink
-                                to="/documentation"
-                                onClick={handleNavClick}
-                                className={({ isActive }) =>
-                                  `flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-purple-500/10 text-sm rounded ${isActive ? "text-white bg-purple-500/10" : ""}`
-                                }
-                              >
-                                <BookOpen size={16} />
-                                <span>Docs</span>
-                              </NavLink>
-                            </li>
-                          </ul>
-                        )}
-                      </li>
-
-                      <li>
-                        <NavLink
-                          to="/register-employee"
-                          onClick={handleNavClick}
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
-                          }
-                        >
-                          <Users size={16} />
-                          <span>EMPLEADOS</span>
-                        </NavLink>
-                      </li>
-                    </>
+                      {openDropdown === "admin-mobile" && (
+                        <ul className="ml-8 mt-1 mb-2 space-y-1">
+                          <li>
+                            <NavLink
+                              to="/admin-panel"
+                              onClick={handleNavClick}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 text-sm rounded ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
+                              }
+                            >
+                              <Users size={16} />
+                              <span>Admin Panel</span>
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to="/dashboard"
+                              onClick={handleNavClick}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-blue-500/10 text-sm rounded ${
+                                  isActive ? "text-white bg-blue-500/10" : ""
+                                }`
+                              }
+                            >
+                              <BarChart3 size={16} />
+                              <span>Dashboard</span>
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to="/documentation"
+                              onClick={handleNavClick}
+                              className={({ isActive }) =>
+                                `flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white hover:bg-purple-500/10 text-sm rounded ${
+                                  isActive ? "text-white bg-purple-500/10" : ""
+                                }`
+                              }
+                            >
+                              <BookOpen size={16} />
+                              <span>Docs</span>
+                            </NavLink>
+                          </li>
+                        </ul>
+                      )}
+                    </li>
                   )}
 
                   {Array.isArray(user?.rol) && (user.rol.includes("cliente") || isAdmin) && (
@@ -472,7 +487,9 @@ function Navbar() {
                         to="/user/profile"
                         onClick={handleNavClick}
                         className={({ isActive }) =>
-                          `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                          `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                            isActive ? "text-white bg-white/5" : ""
+                          }`
                         }
                       >
                         <User size={16} />
@@ -489,7 +506,9 @@ function Navbar() {
                             to="/producto"
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
                             }
                           >
                             <Package size={16} />
@@ -501,7 +520,9 @@ function Navbar() {
                             to="/carrito"
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
                             }
                           >
                             <ShoppingCart size={16} />
@@ -513,7 +534,9 @@ function Navbar() {
                             to="/wishlist"
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                              `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                isActive ? "text-white bg-white/5" : ""
+                              }`
                             }
                           >
                             <Heart size={16} />
@@ -530,7 +553,9 @@ function Navbar() {
                           to="/envio"
                           onClick={handleNavClick}
                           className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
                           }
                         >
                           <Truck size={16} />
@@ -542,7 +567,9 @@ function Navbar() {
                           to="/envio/tarifas"
                           onClick={handleNavClick}
                           className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
                           }
                         >
                           <DollarSign size={16} />
@@ -554,7 +581,9 @@ function Navbar() {
                           to="/empleado-panel"
                           onClick={handleNavClick}
                           className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
                           }
                         >
                           <Users size={16} />
@@ -566,7 +595,9 @@ function Navbar() {
                           to="/promocion"
                           onClick={handleNavClick}
                           className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${isActive ? "text-white bg-white/5" : ""}`
+                            `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
                           }
                         >
                           <TicketPercent size={16} />

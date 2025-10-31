@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
@@ -38,7 +40,6 @@ function Navbar() {
 
   return (
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
-      {/* Aumenta el ancho útil del contenedor */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center h-16">
           {/* LOGO */}
@@ -62,10 +63,9 @@ function Navbar() {
             </NavLink>
           </div>
 
-          {/* NAV DESKTOP: scroll horizontal si no caben todas las rutas */}
           <div className="hidden lg:flex flex-1 items-stretch">
-              <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full pb-1 -mb-1">
-                <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
+            <div className="nav-scroll overflow-x-auto overflow-y-visible overscroll-x-contain w-full pb-1 -mb-1">
+              <ul className="flex items-center justify-end space-x-1 whitespace-nowrap min-w-max pr-4">
                 {!isAuthenticated && (
                   <>
                     <li>
@@ -113,62 +113,62 @@ function Navbar() {
                     </li>
 
                     {Array.isArray(user?.rol) && user.rol.includes("admin") && (
-                      <>
-                        <li>
-                          <NavLink
-                            to="/admin-panel"
-                            className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                                isActive ? "text-white bg-white/5" : ""
-                              }`
-                            }
-                          >
-                            <Settings size={16} />
-                            <span>ADMIN</span>
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/register-employee"
-                            className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                                isActive ? "text-white bg-white/5" : ""
-                              }`
-                            }
-                          >
-                            <Users size={16} />
-                            <span>EMPLEADOS</span>
-                          </NavLink>
-                        </li>
-                        <li>
-                          <NavLink
-                            to="/dashboard"
-                            className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
-                                isActive ? "text-white bg-blue-500/10" : ""
-                              }`
-                            }
-                          >
-                            <BarChart3 size={16} />
-                            <span>DASHBOARD</span>
-                          </NavLink>
-                        </li>
+                      <li
+                        className="relative"
+                        onMouseEnter={() => setOpenDropdown("admin")}
+                        onMouseLeave={() => setOpenDropdown(null)}
+                      >
+                        <NavLink
+                          to="/admin-panel"
+                          className={({ isActive }) =>
+                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                              isActive ? "text-white bg-white/5" : ""
+                            }`
+                          }
+                        >
+                          <Settings size={16} />
+                          <span>ADMIN</span>
+                          <ChevronDown size={14} className="ml-1" />
+                        </NavLink>
 
-                        {/* DOCUMENTACIÓN (admin) */}
-                        <li>
-                          <NavLink
-                            to="/documentation"
-                            className={({ isActive }) =>
-                              `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
-                                isActive ? "text-white bg-purple-500/10" : ""
-                              }`
-                            }
-                          >
-                            <BookOpen size={16} />
-                            <span>DOCS</span>
-                          </NavLink>
-                        </li>
-                      </>
+                        {openDropdown === "admin" && (
+                          <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
+                            <NavLink
+                              to="/register-employee"
+                              className={({ isActive }) =>
+                                `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-white/5" : ""
+                                }`
+                              }
+                            >
+                              <Users size={16} />
+                              <span>EMPLEADOS</span>
+                            </NavLink>
+                            <NavLink
+                              to="/dashboard"
+                              className={({ isActive }) =>
+                                `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-blue-500/10" : ""
+                                }`
+                              }
+                            >
+                              <BarChart3 size={16} />
+                              <span>DASHBOARD</span>
+                            </NavLink>
+                            <NavLink
+                              to="/documentation"
+                              className={({ isActive }) =>
+                                `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
+                                  isActive ? "text-white bg-purple-500/10" : ""
+                                }`
+                              }
+                            >
+                              <BookOpen size={16} />
+                              <span>DOCS</span>
+                            </NavLink>
+                          </div>
+                        )}
+                      </li>
                     )}
 
                     {Array.isArray(user?.rol) && (user.rol.includes("cliente") || user.rol.includes("admin")) && (
@@ -318,7 +318,6 @@ function Navbar() {
                     </li>
                   </>
                 )}
-                
               </ul>
             </div>
           </div>
@@ -566,7 +565,7 @@ function Navbar() {
                             }`
                           }
                         >
-                          <Users size={16} />
+                          <TicketPercent size={16} />
                           <span>PROMOCION</span>
                         </NavLink>
                       </li>

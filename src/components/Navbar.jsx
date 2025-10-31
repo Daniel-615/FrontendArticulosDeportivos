@@ -38,6 +38,14 @@ function Navbar() {
     setOpenDropdown(null)
   }
 
+  const handleMouseEnter = (dropdown) => {
+    setOpenDropdown(dropdown)
+  }
+
+  const handleMouseLeave = () => {
+    setOpenDropdown(null)
+  }
+
   return (
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
@@ -115,26 +123,20 @@ function Navbar() {
                     {Array.isArray(user?.rol) && user.rol.includes("admin") && (
                       <li
                         className="relative"
-                        onMouseEnter={() => setOpenDropdown("admin")}
-                        onMouseLeave={() => setOpenDropdown(null)}
+                        onMouseEnter={() => handleMouseEnter("admin")}
+                        onMouseLeave={handleMouseLeave}
                       >
-                        <NavLink
-                          to="/admin-panel"
-                          className={({ isActive }) =>
-                            `flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
-                              isActive ? "text-white bg-white/5" : ""
-                            }`
-                          }
-                        >
+                        <button className="flex items-center space-x-2 px-4 py-2 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide">
                           <Settings size={16} />
                           <span>ADMIN</span>
                           <ChevronDown size={14} className="ml-1" />
-                        </NavLink>
+                        </button>
 
                         {openDropdown === "admin" && (
                           <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                             <NavLink
                               to="/register-employee"
+                              onClick={handleNavClick}
                               className={({ isActive }) =>
                                 `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                                   isActive ? "text-white bg-white/5" : ""
@@ -146,6 +148,7 @@ function Navbar() {
                             </NavLink>
                             <NavLink
                               to="/dashboard"
+                              onClick={handleNavClick}
                               className={({ isActive }) =>
                                 `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-blue-500/10 transition-colors text-sm font-medium tracking-wide ${
                                   isActive ? "text-white bg-blue-500/10" : ""
@@ -157,6 +160,7 @@ function Navbar() {
                             </NavLink>
                             <NavLink
                               to="/documentation"
+                              onClick={handleNavClick}
                               className={({ isActive }) =>
                                 `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-purple-500/10 transition-colors text-sm font-medium tracking-wide ${
                                   isActive ? "text-white bg-purple-500/10" : ""
@@ -206,8 +210,8 @@ function Navbar() {
 
                           <li
                             className="relative"
-                            onMouseEnter={() => setOpenDropdown("carrito")}
-                            onMouseLeave={() => setOpenDropdown(null)}
+                            onMouseEnter={() => handleMouseEnter("carrito")}
+                            onMouseLeave={handleMouseLeave}
                           >
                             <NavLink
                               to="/carrito"
@@ -226,6 +230,7 @@ function Navbar() {
                               <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                                 <NavLink
                                   to="/wishlist"
+                                  onClick={handleNavClick}
                                   className={({ isActive }) =>
                                     `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                                       isActive ? "text-white bg-white/5" : ""
@@ -245,8 +250,8 @@ function Navbar() {
                       <>
                         <li
                           className="relative"
-                          onMouseEnter={() => setOpenDropdown("envios")}
-                          onMouseLeave={() => setOpenDropdown(null)}
+                          onMouseEnter={() => handleMouseEnter("envios")}
+                          onMouseLeave={handleMouseLeave}
                         >
                           <NavLink
                             to="/envio"
@@ -265,6 +270,7 @@ function Navbar() {
                             <div className="absolute top-full left-0 mt-0 w-48 bg-black border border-white/10 shadow-xl z-50">
                               <NavLink
                                 to="/envio/tarifas"
+                                onClick={handleNavClick}
                                 className={({ isActive }) =>
                                   `flex items-center space-x-2 px-4 py-3 text-white/80 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium tracking-wide ${
                                     isActive ? "text-white bg-white/5" : ""
